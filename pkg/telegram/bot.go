@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
@@ -104,11 +105,23 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
-		log.Printf("Text: %s", m.Text)
+		if b.verbose {
+			log.Printf("Text: %s", m.Text)
+		}
+		p, err := purchases.New(m.Text)
+		if err != nil {
+			log.Printf("Purchase: %v", p)
+		}
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		log.Printf("Photo with caption: %s", m.Caption)
+		if b.verbose {
+			log.Printf("Photo with caption: %s", m.Caption)
+		}
+		p, err := purchases.New(m.Caption)
+		if err != nil {
+			log.Printf("Purchase: %v", p)
+		}
 	})
 
 	b.bot.Start()

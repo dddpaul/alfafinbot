@@ -26,7 +26,9 @@ type Purchase struct {
 }
 
 func New(s string) (*Purchase, error) {
-	m, err := ut.Extract(s)
+	s1 := strings.ReplaceAll(s, "\n", " ")
+
+	m, err := ut.Extract(s1)
 	if err != nil {
 		return nil, err
 	}
@@ -49,5 +51,6 @@ func New(s string) (*Purchase, error) {
 
 func parseFloat(s string) (float64, error) {
 	s1 := strings.Replace(s, ",", ".", 1)
+	s1 = strings.ReplaceAll(s1, " ", "")
 	return strconv.ParseFloat(s1, 64)
 }
