@@ -1,0 +1,8 @@
+# IDEA project settings
+.idea
+*.ipr
+*.iws
+*.iml
+
+.Makefile
+alfafin-bot
