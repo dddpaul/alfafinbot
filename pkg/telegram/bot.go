@@ -108,7 +108,7 @@ func (b *Bot) Start() {
 		if b.verbose {
 			log.Printf("Text: %s", m.Text)
 		}
-		p, err := purchases.New(m.Text)
+		p, err := purchases.New(m.Time(), m.Text)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
@@ -119,7 +119,7 @@ func (b *Bot) Start() {
 		if b.verbose {
 			log.Printf("Photo with caption: %s", m.Caption)
 		}
-		p, err := purchases.New(m.Caption)
+		p, err := purchases.New(m.Time(), m.Caption)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}

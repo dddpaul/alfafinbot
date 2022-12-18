@@ -3,11 +3,13 @@ package purchases
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/natekfl/untemplate"
 )
 
 var ut *untemplate.Untemplater
+var df string
 
 func init() {
 	var err error
@@ -15,17 +17,17 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 type Purchase struct {
+	Time     time.Time
 	Price    float64
 	Merchant string
 	Card     string
 	Balance  float64
 }
 
-func New(s string) (*Purchase, error) {
+func New(t time.Time, s string) (*Purchase, error) {
 	s1 := strings.ReplaceAll(s, "\n", " ")
 
 	m, err := ut.Extract(s1)
@@ -42,6 +44,7 @@ func New(s string) (*Purchase, error) {
 	}
 
 	return &Purchase{
+		Time:     t,
 		Price:    price,
 		Merchant: m["merchant"],
 		Card:     m["card"],
