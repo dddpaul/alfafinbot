@@ -108,7 +108,7 @@ func (b *Bot) Start() {
 		if b.verbose {
 			log.Printf("Text: %s, forwarded: %t", m.Text, m.IsForwarded())
 		}
-		p, err := purchases.New(m.Time(), m.Text)
+		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
@@ -119,7 +119,7 @@ func (b *Bot) Start() {
 		if b.verbose {
 			log.Printf("Photo with caption: %s, forwarded: %t", m.Caption, m.IsForwarded())
 		}
-		p, err := purchases.New(m.Time(), m.Caption)
+		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
@@ -127,4 +127,11 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Start()
+}
+
+func getTime(m *tb.Message) time.Time {
+	if m.IsForwarded() {
+		return time.Unix(int64(m.OriginalUnixtime), 0)
+	}
+	return m.Time()
 }
