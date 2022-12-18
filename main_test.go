@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 )
 
@@ -48,6 +49,13 @@ func TestNewPurchase(t *testing.T) {
 
 	p, err = newPurchase("Деньги пришли! 20 000 ₽ на карту\n**1111. Баланс: 21 945,39 ₽")
 	assert.NotNil(t, err)
+}
+
+func TestGASClient(t *testing.T) {
+	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
+	assert.Nil(t, err)
+	client := gas.NewClient("https://script.google.com/macros/s/AKfycbyrwn7YFeSZ1MfrqnLY5wjlq7GNtKfxmTVw3yMJ3xokNTAofK9w-H9olLi_iMvLqwQ-Sg/exec")
+	client.Request(p)
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {
