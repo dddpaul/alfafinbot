@@ -110,8 +110,9 @@ func (b *Bot) Start() {
 		}
 		p, err := purchases.New(m.Text)
 		if err != nil {
-			log.Printf("Purchase: %v", p)
+			log.Printf("ERROR: %v", err)
 		}
+		log.Printf("Purchase: %v", p)
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
@@ -120,8 +121,9 @@ func (b *Bot) Start() {
 		}
 		p, err := purchases.New(m.Caption)
 		if err != nil {
-			log.Printf("Purchase: %v", p)
+			log.Printf("ERROR: %v", err)
 		}
+		log.Printf("Purchase: %v", p)
 	})
 
 	b.bot.Start()

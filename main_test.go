@@ -28,6 +28,11 @@ func TestNewPurchase(t *testing.T) {
 	assert.Equal(t, float64(527), p.Price, "Integer should be parsed to float correctly")
 	assert.Equal(t, float64(4506), p.Balance, "Integer should be parsed to float correctly")
 
+	p, err = purchases.New("Покупка 5 271.17 ₽, Озон.\nКарта **1111. Баланс: 4 506.22 ₽")
+	assert.Nil(t, err)
+	assert.Equal(t, 5271.17, p.Price, "Space should be accepted as thousand separator")
+	assert.Equal(t, 4506.22, p.Balance, "Non-breaking space (U+00A0) should be accepted as thousand separator")
+
 	p, err = purchases.New("")
 	assert.NotNil(t, err)
 

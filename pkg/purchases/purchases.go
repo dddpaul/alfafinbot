@@ -52,5 +52,6 @@ func New(s string) (*Purchase, error) {
 func parseFloat(s string) (float64, error) {
 	s1 := strings.Replace(s, ",", ".", 1)
 	s1 = strings.ReplaceAll(s1, " ", "")
+	s1 = strings.ReplaceAll(s1, "\u00A0", "")
 	return strconv.ParseFloat(s1, 64)
 }
