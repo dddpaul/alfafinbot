@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 )
 
 const DF = "02.01.2006"
+const GAS_ID = "AKfycbyaztWqnUKpEs0Pbgi4xvi4i4S3eBhQD3rFsdGk2KfdvEcMaPjVMOKpKufG4izpaxsUoA"
 
 func TestNewPurchase(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
@@ -54,7 +56,7 @@ func TestNewPurchase(t *testing.T) {
 func TestGASClient(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	assert.Nil(t, err)
-	client := gas.NewClient("https://script.google.com/macros/s/AKfycbyrwn7YFeSZ1MfrqnLY5wjlq7GNtKfxmTVw3yMJ3xokNTAofK9w-H9olLi_iMvLqwQ-Sg/exec")
+	client := gas.NewClient(fmt.Sprintf("https://script.google.com/macros/s/%s/exec", GAS_ID))
 	client.Request(p)
 }
 
