@@ -12,7 +12,7 @@ import (
 )
 
 const DF = "02.01.2006"
-const GAS_ID = "AKfycbyaztWqnUKpEs0Pbgi4xvi4i4S3eBhQD3rFsdGk2KfdvEcMaPjVMOKpKufG4izpaxsUoA"
+const GAS_ID = "AKfycbyLE6GsIpZL9NvYkgT5odQhS5XTEreq4kZgiaPlRMb3ocZbSUvVlegu88354rNhJwP-zg"
 
 func TestNewPurchase(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
