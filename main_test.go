@@ -57,7 +57,7 @@ func TestGASClient(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	assert.Nil(t, err)
 	client := gas.NewClient(fmt.Sprintf("https://script.google.com/macros/s/%s/exec", GAS_ID))
-	client.Request(p)
+	client.Add(p)
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {

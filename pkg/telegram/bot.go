@@ -7,16 +7,18 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type Bot struct {
-	bot     *tb.Bot
-	verbose bool
-	admin   string
-	client  *http.Client
+	bot       *tb.Bot
+	verbose   bool
+	admin     string
+	gasClient *gas.Client
+	client    *http.Client
 }
 
 type BotOption func(b *Bot)
@@ -66,6 +68,12 @@ func WithAdmin(a string) BotOption {
 	}
 }
 
+func WithGASUrl(u string) BotOption {
+	return func(b *Bot) {
+		b.gasClient = gas.NewClient(u)
+	}
+}
+
 func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 	b := &Bot{}
 
@@ -112,7 +120,8 @@ func (b *Bot) Start() {
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
-		log.Printf("Purchase: %v", p)
+		b.gasClient.Add(p)
+		log.Printf("Purchase %v have been added to sheet", p)
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
@@ -123,7 +132,8 @@ func (b *Bot) Start() {
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
-		log.Printf("Purchase: %v", p)
+		b.gasClient.Add(p)
+		log.Printf("Purchase %v have been added to sheet", p)
 	})
 
 	b.bot.Start()

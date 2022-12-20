@@ -22,7 +22,7 @@ func NewClient(rawURL string) *Client {
 	return &Client{url}
 }
 
-func (c *Client) Request(p *purchases.Purchase) error {
+func (c *Client) Add(p *purchases.Purchase) error {
 	params := url.Values{}
 	params.Add("time", p.Time.Local().String())
 	params.Add("merchant", p.Merchant)
