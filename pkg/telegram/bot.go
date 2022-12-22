@@ -119,6 +119,7 @@ func (b *Bot) Start() {
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			return
 		}
 		b.gasClient.Add(p)
 		log.Printf("Purchase %v have been added to sheet", p)
@@ -131,6 +132,7 @@ func (b *Bot) Start() {
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			return
 		}
 		b.gasClient.Add(p)
 		log.Printf("Purchase %v have been added to sheet", p)

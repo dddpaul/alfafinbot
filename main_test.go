@@ -37,6 +37,10 @@ func TestNewPurchase(t *testing.T) {
 	assert.Equal(t, 5271.17, p.Price, "Space should be accepted as thousand separator")
 	assert.Equal(t, 4506.22, p.Balance, "Non-breaking space (U+00A0) should be accepted as thousand separator")
 
+	p, err = newPurchase("Отмена операции 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
+	assert.Nil(t, err)
+	assert.Equal(t, -527.11, p.Price)
+
 	p, err = newPurchase("")
 	assert.NotNil(t, err)
 

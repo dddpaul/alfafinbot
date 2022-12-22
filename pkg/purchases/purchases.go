@@ -8,12 +8,24 @@ import (
 	"github.com/natekfl/untemplate"
 )
 
-var ut *untemplate.Untemplater
+type Operation int64
+
+const (
+	Buy Operation = iota
+	Cancel
+)
+
+var ut1 *untemplate.Untemplater
+var ut2 *untemplate.Untemplater
 var df string
 
 func init() {
 	var err error
-	ut, err = untemplate.Create("Покупка {price} ₽, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	ut1, err = untemplate.Create("Покупка {price} ₽, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	if err != nil {
+		panic(err)
+	}
+	ut2, err = untemplate.Create("Отмена операции {price} ₽, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
@@ -29,15 +41,25 @@ type Purchase struct {
 
 func New(t time.Time, s string) (*Purchase, error) {
 	s1 := strings.ReplaceAll(s, "\n", " ")
+	op := Buy
 
-	m, err := ut.Extract(s1)
+	m, err := ut1.Extract(s1)
 	if err != nil {
-		return nil, err
+		op = Cancel
+		m, err = ut2.Extract(s1)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	price, err := parseFloat(m["price"])
 	if err != nil {
 		return nil, err
 	}
+	if op == Cancel {
+		price = -price
+	}
+
 	balance, err := parseFloat(m["balance"])
 	if err != nil {
 		return nil, err
