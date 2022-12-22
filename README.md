@@ -1,7 +1,7 @@
 Alfabank Finance Bot
 =========
 
-Simple Telegram bot for alfabank telegram bot written in Go.
+Simple Telegram bot for parsing and uploading to Google sheet messages from [t.me/s/AlfaBank](https://t.me/s/AlfaBank).
 
 Install:
 
@@ -15,15 +15,17 @@ Or grab Docker image:
 docker pull dddpaul/alfafinbot
 ```
 
-Format of messages:
+Usage:
 
 ```
-Покупка 527 ₽, Буханка.
-Карта **1111. Баланс: 4506,85 ₽
-
-Покупка 80 ₽, DoubleCupCoffee.
-Карта **2222. Баланс: 5213,84 ₽
-
-Покупка 199,99 ₽, OZON.
-Карта **3333. Баланс: 5826,84 ₽
+  -gas-url string
+    	Google App Script URL
+  -telegram-admin string
+    	Telegram admin user
+  -telegram-proxy-url string
+    	Telegram SOCKS5 proxy url
+  -telegram-token string
+    	Telegram API token
+  -verbose
+    	Enable bot debug
 ```
