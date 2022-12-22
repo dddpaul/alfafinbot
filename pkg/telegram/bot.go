@@ -105,6 +105,15 @@ func (b *Bot) Start() {
 		return true
 	}
 
+	add := func(p *purchases.Purchase) {
+		resp, err := b.gasClient.Add(p)
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+			return
+		}
+		log.Printf("Purchase %v have been added to sheet", resp)
+	}
+
 	b.bot.Handle("/status", func(m *tb.Message) {
 		if !check("/status", m) {
 			return
@@ -121,8 +130,7 @@ func (b *Bot) Start() {
 			log.Printf("ERROR: %v", err)
 			return
 		}
-		b.gasClient.Add(p)
-		log.Printf("Purchase %v have been added to sheet", p)
+		add(p)
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
@@ -134,8 +142,7 @@ func (b *Bot) Start() {
 			log.Printf("ERROR: %v", err)
 			return
 		}
-		b.gasClient.Add(p)
-		log.Printf("Purchase %v have been added to sheet", p)
+		add(p)
 	})
 
 	b.bot.Start()

@@ -22,7 +22,7 @@ func NewClient(rawURL string) *Client {
 	return &Client{url}
 }
 
-func (c *Client) Add(p *purchases.Purchase) error {
+func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params := url.Values{}
 	params.Add("time", p.Time.Local().String())
 	params.Add("merchant", p.Merchant)
@@ -32,15 +32,14 @@ func (c *Client) Add(p *purchases.Purchase) error {
 
 	res, err := http.Get(c.url.String())
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	res.Body.Close()
-	log.Printf("Response: %s\n", data)
-	return nil
+	return string(data), nil
 }
