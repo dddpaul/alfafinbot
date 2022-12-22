@@ -28,7 +28,6 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
 	c.url.RawQuery = params.Encode()
-	log.Printf("Encoded URL: %q\n", c.url.String())
 
 	res, err := http.Get(c.url.String())
 	if err != nil {
