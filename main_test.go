@@ -1,18 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 )
 
 const DF = "02.01.2006"
-const GAS_ID = "AKfycbyLE6GsIpZL9NvYkgT5odQhS5XTEreq4kZgiaPlRMb3ocZbSUvVlegu88354rNhJwP-zg"
 
 func TestNewPurchase(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
@@ -55,13 +52,6 @@ func TestNewPurchase(t *testing.T) {
 
 	p, err = newPurchase("Деньги пришли! 20 000 ₽ на карту\n**1111. Баланс: 21 945,39 ₽")
 	assert.NotNil(t, err)
-}
-
-func TestGASClient(t *testing.T) {
-	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
-	assert.Nil(t, err)
-	client := gas.NewClient(fmt.Sprintf("https://script.google.com/macros/s/%s/exec", GAS_ID))
-	client.Add(p)
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {
