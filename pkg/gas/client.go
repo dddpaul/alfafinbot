@@ -11,6 +11,8 @@ import (
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 )
 
+const DF = "2006-01-02 15:04:05 -0700"
+
 type Client struct {
 	url *url.URL
 }
@@ -25,7 +27,7 @@ func NewClient(rawURL string) *Client {
 
 func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params := url.Values{}
-	params.Add("time", p.Time.Local().String())
+	params.Add("time", p.Time.Format(DF))
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
 	c.url.RawQuery = params.Encode()
