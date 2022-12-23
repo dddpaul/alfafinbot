@@ -2,10 +2,11 @@ package telegram
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
@@ -123,7 +124,7 @@ func (b *Bot) Start() {
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
 		if b.verbose {
-			log.Printf("Text: %s, forwarded: %t", m.Text, m.IsForwarded())
+			log.Printf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
 		}
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
@@ -135,7 +136,7 @@ func (b *Bot) Start() {
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
 		if b.verbose {
-			log.Printf("Photo with caption: %s, forwarded: %t", m.Caption, m.IsForwarded())
+			log.Printf("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
 		}
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {

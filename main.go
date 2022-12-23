@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/telegram"
 )
@@ -22,6 +23,11 @@ func main() {
 	flag.StringVar(&telegramAdmin, "telegram-admin", "", "Telegram admin user")
 	flag.StringVar(&gasURL, "gas-url", "", "Google App Script URL")
 	flag.Parse()
+
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
 
 	if len(telegramToken) == 0 {
 		log.Panic("Telegram API token has to be specified")

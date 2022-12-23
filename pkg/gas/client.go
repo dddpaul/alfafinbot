@@ -2,10 +2,11 @@ package gas
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 )
