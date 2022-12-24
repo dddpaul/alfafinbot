@@ -1,10 +1,12 @@
 package gas
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -41,7 +43,25 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	res.Body.Close()
-	return string(data), nil
+
+	s := string(data)
+	if strings.Contains(s, "ReferenceError") {
+		return "", errors.New("GAS: " + after(s, "ReferenceError: "))
+	}
+
+	return s, nil
+}
+
+// Get substring after a string
+func after(s string, a string) string {
+	pos := strings.LastIndex(s, a)
+	if pos == -1 {
+		return ""
+	}
+	adjustedPos := pos + len(a)
+	if adjustedPos >= len(s) {
+		return ""
+	}
+	return s[adjustedPos : len(s)-1]
 }
