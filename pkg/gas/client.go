@@ -46,8 +46,8 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	res.Body.Close()
 
 	s := string(data)
-	if strings.Contains(s, "ReferenceError") {
-		return "", errors.New("GAS: " + after(s, "ReferenceError: "))
+	if strings.Contains(s, ".errorMessage") {
+		return "", errors.New("GAS: " + after(s, "Error: "))
 	}
 
 	return s, nil
