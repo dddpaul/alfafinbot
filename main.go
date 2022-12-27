@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 
@@ -18,16 +20,18 @@ var (
 
 func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable bot debug")
-	flag.StringVar(&telegramToken, "telegram-token", "", "Telegram API token")
-	flag.StringVar(&telegramProxyURL, "telegram-proxy-url", "", "Telegram SOCKS5 proxy url")
-	flag.StringVar(&telegramAdmin, "telegram-admin", "", "Telegram admin user")
-	flag.StringVar(&gasURL, "gas-url", "", "Google App Script URL")
-	flag.Parse()
+	flag.StringVar(&telegramToken, "telegram-token", LookupEnvOrString("TELEGRAM_TOKEN", ""), "Telegram API token")
+	flag.StringVar(&telegramProxyURL, "telegram-proxy-url", LookupEnvOrString("TELEGRAM_PROXY_URL", ""), "Telegram SOCKS5 proxy url")
+	flag.StringVar(&telegramAdmin, "telegram-admin", LookupEnvOrString("TELEGRAM_ADMIN", ""), "Telegram admin user")
+	flag.StringVar(&gasURL, "gas-url", LookupEnvOrString("GAS_URL", ""), "Google App Script URL")
 
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: true,
 		FullTimestamp: true,
 	})
+
+	flag.Parse()
+	log.Printf("Configuration %v\n", getConfig(flag.CommandLine))
 
 	if len(telegramToken) == 0 {
 		log.Panic("Telegram API token has to be specified")
@@ -43,4 +47,20 @@ func main() {
 	}
 
 	bot.Start()
+}
+
+func LookupEnvOrString(key string, defaultVal string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultVal
+}
+
+func getConfig(fs *flag.FlagSet) []string {
+	cfg := make([]string, 0, 10)
+	fs.VisitAll(func(f *flag.Flag) {
+		cfg = append(cfg, fmt.Sprintf("%s:%q", f.Name, f.Value.String()))
+	})
+
+	return cfg
 }
