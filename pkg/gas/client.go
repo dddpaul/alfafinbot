@@ -52,6 +52,26 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	return s, nil
 }
 
+func (c *Client) CurrentMonthSum() (string, error) {
+	res, err := http.Get(c.u.String())
+	if err != nil {
+		return "", err
+	}
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	res.Body.Close()
+
+	s := string(data)
+	if strings.Contains(s, ".errorMessage") {
+		return "", errors.New("GAS: " + after(s, "Error: "))
+	}
+
+	return s, nil
+}
+
 // Get substring after a string
 func after(s string, a string) string {
 	pos := strings.LastIndex(s, a)

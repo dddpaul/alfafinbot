@@ -122,6 +122,18 @@ func (b *Bot) Start() {
 		b.bot.Send(m.Sender, fmt.Sprintf("I'm fine"))
 	})
 
+	b.bot.Handle("/month", func(m *tb.Message) {
+		if !check("/month", m) {
+			return
+		}
+		resp, err := b.gasClient.CurrentMonthSum()
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+			return
+		}
+		b.bot.Send(m.Sender, resp)
+	})
+
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
 		if b.verbose {
 			log.Printf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
