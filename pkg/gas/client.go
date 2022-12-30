@@ -16,15 +16,15 @@ import (
 const DF = "2006-01-02 15:04:05 -0700"
 
 type Client struct {
-	url *url.URL
+	u *url.URL
 }
 
 func NewClient(rawURL string) *Client {
-	url, err := url.Parse(rawURL)
+	u, err := url.Parse(rawURL)
 	if err != nil {
 		log.Panic(err)
 	}
-	return &Client{url}
+	return &Client{u}
 }
 
 func (c *Client) Add(p *purchases.Purchase) (string, error) {
@@ -32,9 +32,8 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("time", p.Time.Format(DF))
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
-	c.url.RawQuery = params.Encode()
 
-	res, err := http.Get(c.url.String())
+	res, err := http.PostForm(c.u.String(), params)
 	if err != nil {
 		return "", err
 	}
