@@ -69,9 +69,9 @@ func WithAdmin(a string) BotOption {
 	}
 }
 
-func WithGASUrl(u string) BotOption {
+func WithGAS(url string, id string, secret string) BotOption {
 	return func(b *Bot) {
-		b.gasClient = gas.NewClient(u)
+		b.gasClient = gas.NewClient(url, id, secret)
 	}
 }
 

@@ -36,11 +36,15 @@ func (r *Response) isError() bool {
 	return r.Status != OK
 }
 
-func NewClient(rawURL string) *Client {
+func NewClient(rawURL string, id string, secret string) *Client {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		log.Panic(err)
 	}
+	params := url.Values{}
+	params.Add("client_id", id)
+	params.Add("client_secret", secret)
+	u.RawQuery = params.Encode()
 	return &Client{u}
 }
 

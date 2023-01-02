@@ -16,6 +16,8 @@ var (
 	telegramProxyURL string
 	telegramAdmin    string
 	gasURL           string
+	gasClientID      string
+	gasClientSecret  string
 )
 
 func main() {
@@ -24,6 +26,8 @@ func main() {
 	flag.StringVar(&telegramProxyURL, "telegram-proxy-url", LookupEnvOrString("TELEGRAM_PROXY_URL", ""), "Telegram SOCKS5 proxy url")
 	flag.StringVar(&telegramAdmin, "telegram-admin", LookupEnvOrString("TELEGRAM_ADMIN", ""), "Telegram admin user")
 	flag.StringVar(&gasURL, "gas-url", LookupEnvOrString("GAS_URL", ""), "Google App Script URL")
+	flag.StringVar(&gasClientID, "gas-client-id", LookupEnvOrString("GAS_CLIENT_ID", ""), "This app client id for GAS web application")
+	flag.StringVar(&gasClientSecret, "gas-client-secret", LookupEnvOrString("GAS_CLIENT_SECRET", ""), "This app client secret for GAS web application")
 
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: true,
@@ -41,7 +45,7 @@ func main() {
 		telegram.WithVerbose(verbose),
 		telegram.WithAdmin(telegramAdmin),
 		telegram.WithSocks(telegramProxyURL),
-		telegram.WithGASUrl(gasURL))
+		telegram.WithGAS(gasURL, gasClientID, gasClientSecret))
 	if err != nil {
 		log.Panic(err)
 	}
