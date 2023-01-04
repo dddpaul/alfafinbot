@@ -67,9 +67,25 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	return r.Message, nil
 }
 
+func (c *Client) TodaySum() (string, error) {
+	return c.get("today")
+}
+
+func (c *Client) CurrentWeekSum() (string, error) {
+	return c.get("week")
+}
+
 func (c *Client) CurrentMonthSum() (string, error) {
+	return c.get("month")
+}
+
+func (c *Client) CurrentYearSum() (string, error) {
+	return c.get("year")
+}
+
+func (c *Client) get(command string) (string, error) {
 	params := url.Values{}
-	params.Add("command", "month")
+	params.Add("command", command)
 	c.u.RawQuery += "&" + params.Encode()
 
 	resp, err := http.Get(c.u.String())

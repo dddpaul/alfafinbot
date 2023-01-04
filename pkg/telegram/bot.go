@@ -122,11 +122,47 @@ func (b *Bot) Start() {
 		b.bot.Send(m.Sender, fmt.Sprintf("I'm fine"))
 	})
 
+	b.bot.Handle("/today", func(m *tb.Message) {
+		if !check("/today", m) {
+			return
+		}
+		resp, err := b.gasClient.TodaySum()
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+			return
+		}
+		b.bot.Send(m.Sender, resp)
+	})
+
+	b.bot.Handle("/week", func(m *tb.Message) {
+		if !check("/week", m) {
+			return
+		}
+		resp, err := b.gasClient.CurrentWeekSum()
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+			return
+		}
+		b.bot.Send(m.Sender, resp)
+	})
+
 	b.bot.Handle("/month", func(m *tb.Message) {
 		if !check("/month", m) {
 			return
 		}
 		resp, err := b.gasClient.CurrentMonthSum()
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+			return
+		}
+		b.bot.Send(m.Sender, resp)
+	})
+
+	b.bot.Handle("/year", func(m *tb.Message) {
+		if !check("/year", m) {
+			return
+		}
+		resp, err := b.gasClient.CurrentYearSum()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
