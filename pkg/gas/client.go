@@ -68,6 +68,10 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 }
 
 func (c *Client) CurrentMonthSum() (string, error) {
+	params := url.Values{}
+	params.Add("command", "month")
+	c.u.RawQuery += "&" + params.Encode()
+
 	resp, err := http.Get(c.u.String())
 	if err != nil {
 		return "", err
