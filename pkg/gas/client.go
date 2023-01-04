@@ -16,6 +16,12 @@ import (
 
 const DF = "2006-01-02 15:04:05 -0700"
 
+type GASConfig struct {
+	Url          string
+	ClientID     string
+	ClientSecret string
+}
+
 type Client struct {
 	u *url.URL
 }
@@ -36,14 +42,15 @@ func (r *Response) isError() bool {
 	return r.Status != OK
 }
 
-func NewClient(rawURL string, id string, secret string) *Client {
-	u, err := url.Parse(rawURL)
+func NewClient(gas *GASConfig, command string) *Client {
+	u, err := url.Parse(gas.Url)
 	if err != nil {
 		log.Panic(err)
 	}
 	params := url.Values{}
-	params.Add("client_id", id)
-	params.Add("client_secret", secret)
+	params.Add("client_id", gas.ClientID)
+	params.Add("client_secret", gas.ClientSecret)
+	params.Add("command", command)
 	u.RawQuery = params.Encode()
 	return &Client{u}
 }
@@ -67,27 +74,7 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	return r.Message, nil
 }
 
-func (c *Client) TodaySum() (string, error) {
-	return c.get("today")
-}
-
-func (c *Client) CurrentWeekSum() (string, error) {
-	return c.get("week")
-}
-
-func (c *Client) CurrentMonthSum() (string, error) {
-	return c.get("month")
-}
-
-func (c *Client) CurrentYearSum() (string, error) {
-	return c.get("year")
-}
-
-func (c *Client) get(command string) (string, error) {
-	params := url.Values{}
-	params.Add("command", command)
-	c.u.RawQuery += "&" + params.Encode()
-
+func (c *Client) Get() (string, error) {
 	resp, err := http.Get(c.u.String())
 	if err != nil {
 		return "", err

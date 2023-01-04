@@ -18,7 +18,7 @@ type Bot struct {
 	bot       *tb.Bot
 	verbose   bool
 	admin     string
-	gasClient *gas.Client
+	gasConfig *gas.GASConfig
 	client    *http.Client
 }
 
@@ -71,7 +71,11 @@ func WithAdmin(a string) BotOption {
 
 func WithGAS(url string, id string, secret string) BotOption {
 	return func(b *Bot) {
-		b.gasClient = gas.NewClient(url, id, secret)
+		b.gasConfig = &gas.GASConfig{
+			Url:          url,
+			ClientID:     id,
+			ClientSecret: secret,
+		}
 	}
 }
 
@@ -107,7 +111,7 @@ func (b *Bot) Start() {
 	}
 
 	add := func(p *purchases.Purchase) {
-		resp, err := b.gasClient.Add(p)
+		resp, err := gas.NewClient(b.gasConfig, "").Add(p)
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
@@ -126,7 +130,7 @@ func (b *Bot) Start() {
 		if !check("/today", m) {
 			return
 		}
-		resp, err := b.gasClient.TodaySum()
+		resp, err := gas.NewClient(b.gasConfig, "today").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
@@ -138,7 +142,7 @@ func (b *Bot) Start() {
 		if !check("/week", m) {
 			return
 		}
-		resp, err := b.gasClient.CurrentWeekSum()
+		resp, err := gas.NewClient(b.gasConfig, "week").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
@@ -150,7 +154,7 @@ func (b *Bot) Start() {
 		if !check("/month", m) {
 			return
 		}
-		resp, err := b.gasClient.CurrentMonthSum()
+		resp, err := gas.NewClient(b.gasConfig, "month").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
@@ -162,7 +166,7 @@ func (b *Bot) Start() {
 		if !check("/year", m) {
 			return
 		}
-		resp, err := b.gasClient.CurrentYearSum()
+		resp, err := gas.NewClient(b.gasConfig, "year").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return
