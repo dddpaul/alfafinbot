@@ -80,6 +80,10 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 		return "", err
 	}
 
+	if c.verbose {
+		log.Printf("RESPONSE: %+v", r)
+	}
+
 	return r.Message, nil
 }
 
@@ -99,7 +103,7 @@ func (c *Client) Get() (string, error) {
 	}
 
 	if c.verbose {
-		log.Printf("RESPONSE: %v", r)
+		log.Printf("RESPONSE: %+v", r)
 	}
 
 	return r.Message, nil
