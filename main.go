@@ -45,7 +45,7 @@ func main() {
 		telegram.WithVerbose(verbose),
 		telegram.WithAdmin(telegramAdmin),
 		telegram.WithSocks(telegramProxyURL),
-		telegram.WithGAS(gasURL, gasClientID, gasClientSecret))
+		telegram.WithGAS(gasURL, gasClientID, gasClientSecret, verbose))
 	if err != nil {
 		log.Panic(err)
 	}

@@ -69,12 +69,13 @@ func WithAdmin(a string) BotOption {
 	}
 }
 
-func WithGAS(url string, id string, secret string) BotOption {
+func WithGAS(url string, id string, secret string, v bool) BotOption {
 	return func(b *Bot) {
 		b.gasConfig = &gas.GASConfig{
 			Url:          url,
 			ClientID:     id,
 			ClientSecret: secret,
+			Verbose:      v,
 		}
 	}
 }
@@ -102,9 +103,11 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 
 func (b *Bot) Start() {
 	check := func(cmd string, m *tb.Message) bool {
-		log.Printf("Received '%s' command from '%s'", cmd, m.Sender.Username)
+		if b.verbose {
+			log.Printf("Received '%s' command from '%s'", cmd, m.Sender.Username)
+		}
 		if b.admin != "" && b.admin != m.Sender.Username {
-			b.bot.Send(m.Sender, "Access restricted")
+			b.bot.Send(m.Sender, "ERROR: Access restricted")
 			return false
 		}
 		return true

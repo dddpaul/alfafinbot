@@ -20,10 +20,12 @@ type GASConfig struct {
 	Url          string
 	ClientID     string
 	ClientSecret string
+	Verbose      bool
 }
 
 type Client struct {
-	u *url.URL
+	u       *url.URL
+	verbose bool
 }
 
 type Status int64
@@ -52,7 +54,10 @@ func NewClient(gas *GASConfig, command string) *Client {
 	params.Add("client_secret", gas.ClientSecret)
 	params.Add("command", command)
 	u.RawQuery = params.Encode()
-	return &Client{u}
+	return &Client{
+		u:       u,
+		verbose: gas.Verbose,
+	}
 }
 
 func (c *Client) Add(p *purchases.Purchase) (string, error) {
@@ -83,6 +88,10 @@ func (c *Client) Get() (string, error) {
 	r, err := parse(resp)
 	if err != nil {
 		return "", err
+	}
+
+	if c.verbose {
+		log.Printf("RESPONSE: %v", r)
 	}
 
 	return r.Message, nil
