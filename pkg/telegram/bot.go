@@ -133,6 +133,7 @@ func (b *Bot) Start() {
 		resp, err := gas.NewClient(b.gasConfig, "today").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
 		b.bot.Send(m.Sender, resp)
@@ -145,6 +146,7 @@ func (b *Bot) Start() {
 		resp, err := gas.NewClient(b.gasConfig, "week").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
 		b.bot.Send(m.Sender, resp)
@@ -157,6 +159,7 @@ func (b *Bot) Start() {
 		resp, err := gas.NewClient(b.gasConfig, "month").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
 		b.bot.Send(m.Sender, resp)
@@ -169,6 +172,7 @@ func (b *Bot) Start() {
 		resp, err := gas.NewClient(b.gasConfig, "year").Get()
 		if err != nil {
 			log.Printf("ERROR: %v", err)
+			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
 		b.bot.Send(m.Sender, resp)
