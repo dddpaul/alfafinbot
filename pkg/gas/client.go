@@ -66,6 +66,10 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
 
+	if c.verbose {
+		log.Printf("REQUEST: %v, BODY: &v", c.u.String(), params)
+	}
+
 	resp, err := http.PostForm(c.u.String(), params)
 	if err != nil {
 		return "", err
@@ -80,6 +84,10 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 }
 
 func (c *Client) Get() (string, error) {
+	if c.verbose {
+		log.Printf("REQUEST: %v", c.u.String())
+	}
+
 	resp, err := http.Get(c.u.String())
 	if err != nil {
 		return "", err
