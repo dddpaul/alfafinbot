@@ -1,13 +1,17 @@
 package gas
 
 import (
+	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -24,7 +28,8 @@ type GASConfig struct {
 }
 
 type Client struct {
-	u       *url.URL
+	url     *url.URL
+	trace   *httptrace.ClientTrace
 	verbose bool
 }
 
@@ -54,8 +59,32 @@ func NewClient(gas *GASConfig, command string) *Client {
 	params.Add("client_secret", gas.ClientSecret)
 	params.Add("command", command)
 	u.RawQuery = params.Encode()
+
+	var dns, connect, tlsHandshake time.Time
+	trace := &httptrace.ClientTrace{
+		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
+		DNSDone: func(ddi httptrace.DNSDoneInfo) {
+			log.Printf("DNS Done: %v\n", time.Since(dns))
+		},
+
+		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
+		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
+			log.Printf("TLS Handshake: %v\n", time.Since(tlsHandshake))
+		},
+
+		ConnectStart: func(network, addr string) { connect = time.Now() },
+		ConnectDone: func(network, addr string, err error) {
+			log.Printf("Connect time: %v\n", time.Since(connect))
+		},
+
+		GotFirstResponseByte: func() {
+			log.Printf("Time from start to first byte: %v\n", time.Since(dns))
+		},
+	}
+
 	return &Client{
-		u:       u,
+		url:     u,
+		trace:   trace,
 		verbose: gas.Verbose,
 	}
 }
@@ -67,10 +96,10 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
 
 	if c.verbose {
-		log.Printf("REQUEST: %v, BODY: &v", c.u.String(), params)
+		log.Printf("REQUEST: %v, BODY: &v", c.url.String(), params)
 	}
 
-	resp, err := http.PostForm(c.u.String(), params)
+	resp, err := http.PostForm(c.url.String(), params)
 	if err != nil {
 		return "", err
 	}
@@ -89,10 +118,12 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 
 func (c *Client) Get() (string, error) {
 	if c.verbose {
-		log.Printf("REQUEST: %v", c.u.String())
+		log.Printf("REQUEST: %v", c.url.String())
 	}
 
-	resp, err := http.Get(c.u.String())
+	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
+	req, _ := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
