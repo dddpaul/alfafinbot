@@ -35,7 +35,11 @@ func main() {
 	})
 
 	flag.Parse()
-	log.Printf("Configuration %v\n", getConfig(flag.CommandLine))
+	log.Printf("Configuration %v", getConfig(flag.CommandLine))
+
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	if len(telegramToken) == 0 {
 		log.Panic("Telegram API token has to be specified")
@@ -45,7 +49,7 @@ func main() {
 		telegram.WithVerbose(verbose),
 		telegram.WithAdmin(telegramAdmin),
 		telegram.WithSocks(telegramProxyURL),
-		telegram.WithGAS(gasURL, gasClientID, gasClientSecret, verbose))
+		telegram.WithGAS(gasURL, gasClientID, gasClientSecret))
 	if err != nil {
 		log.Panic(err)
 	}

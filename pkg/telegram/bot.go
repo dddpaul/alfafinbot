@@ -69,13 +69,12 @@ func WithAdmin(a string) BotOption {
 	}
 }
 
-func WithGAS(url string, id string, secret string, v bool) BotOption {
+func WithGAS(url string, id string, secret string) BotOption {
 	return func(b *Bot) {
 		b.gasConfig = &gas.GASConfig{
 			Url:          url,
 			ClientID:     id,
 			ClientSecret: secret,
-			Verbose:      v,
 		}
 	}
 }
@@ -103,9 +102,7 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 
 func (b *Bot) Start() {
 	check := func(cmd string, m *tb.Message) bool {
-		if b.verbose {
-			log.Printf("Received '%s' command from '%s'", cmd, m.Sender.Username)
-		}
+		log.Printf("Received '%s' command from '%s'", cmd, m.Sender.Username)
 		if b.admin != "" && b.admin != m.Sender.Username {
 			b.bot.Send(m.Sender, "ERROR: Access restricted")
 			return false
@@ -116,7 +113,7 @@ func (b *Bot) Start() {
 	add := func(p *purchases.Purchase) {
 		resp, err := gas.NewClient(b.gasConfig, "").Add(p)
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			return
 		}
 		log.Printf("Purchase %v have been added to sheet", resp)
@@ -135,7 +132,7 @@ func (b *Bot) Start() {
 		}
 		resp, err := gas.NewClient(b.gasConfig, "today").Get()
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -148,7 +145,7 @@ func (b *Bot) Start() {
 		}
 		resp, err := gas.NewClient(b.gasConfig, "week").Get()
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -161,7 +158,7 @@ func (b *Bot) Start() {
 		}
 		resp, err := gas.NewClient(b.gasConfig, "month").Get()
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -174,7 +171,7 @@ func (b *Bot) Start() {
 		}
 		resp, err := gas.NewClient(b.gasConfig, "year").Get()
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -187,7 +184,7 @@ func (b *Bot) Start() {
 		}
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			return
 		}
 		add(p)
@@ -199,7 +196,7 @@ func (b *Bot) Start() {
 		}
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Error("ERROR: %v", err)
 			return
 		}
 		add(p)

@@ -64,21 +64,21 @@ func NewClient(gas *GASConfig, command string) *Client {
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
 		DNSDone: func(ddi httptrace.DNSDoneInfo) {
-			log.Printf("DNS Done: %v", time.Since(dns))
+			log.Debugf("DNS Done: %v", time.Since(dns))
 		},
 
 		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			log.Printf("TLS Handshake: %v", time.Since(tlsHandshake))
+			log.Debugf("TLS Handshake: %v", time.Since(tlsHandshake))
 		},
 
 		ConnectStart: func(network, addr string) { connect = time.Now() },
 		ConnectDone: func(network, addr string, err error) {
-			log.Printf("Connect time: %v", time.Since(connect))
+			log.Debugf("Connect time: %v", time.Since(connect))
 		},
 
 		GotFirstResponseByte: func() {
-			log.Printf("Time from start to first byte: %v", time.Since(dns))
+			log.Debugf("Time from start to first byte: %v", time.Since(dns))
 		},
 	}
 
@@ -94,10 +94,7 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("time", p.Time.Format(DF))
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
-
-	if c.verbose {
-		log.Printf("REQUEST: %v, BODY: &v", c.url.String(), params)
-	}
+	log.Debugf("REQUEST: %v, BODY: &v", c.url.String(), params)
 
 	resp, err := http.PostForm(c.url.String(), params)
 	if err != nil {
@@ -108,18 +105,13 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	if c.verbose {
-		log.Printf("RESPONSE: %+v", r)
-	}
+	log.Debugf("RESPONSE: %+v", r)
 
 	return r.Message, nil
 }
 
 func (c *Client) Get() (string, error) {
-	if c.verbose {
-		log.Printf("REQUEST: %v", c.url.String())
-	}
+	log.Debugf("REQUEST: %v", c.url.String())
 
 	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
 	req, _ := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
@@ -135,16 +127,13 @@ func (c *Client) Get() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	if c.verbose {
-		log.Printf("RESPONSE: %+v", r)
-	}
+	log.Debugf("RESPONSE: %+v", r)
 
 	return r.Message, nil
 }
 
 func logRedirect(req *http.Request, via []*http.Request) error {
-	log.Printf("REDIRECT: %v", req.URL.String())
+	log.Debugf("REDIRECT: %v", req.URL.String())
 	return nil
 }
 
