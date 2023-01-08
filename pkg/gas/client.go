@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
+	"github.com/dddpaul/alfafin-bot/pkg/transport"
 )
 
 const DF = "2006-01-02 15:04:05 -0700"
@@ -23,13 +23,12 @@ type GASConfig struct {
 	Url          string
 	ClientID     string
 	ClientSecret string
-	Verbose      bool
 }
 
 type Client struct {
-	url     *url.URL
-	trace   *httptrace.ClientTrace
-	verbose bool
+	url    *url.URL
+	trace  *httptrace.ClientTrace
+	client *http.Client
 }
 
 type Status int64
@@ -59,18 +58,10 @@ func NewClient(gas *GASConfig, command string) *Client {
 	params.Add("command", command)
 	u.RawQuery = params.Encode()
 
-	var dns time.Time
-	trace := &httptrace.ClientTrace{
-		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
-		GotFirstResponseByte: func() {
-			log.Debugf("RESPONSE: time to first byte received %v", time.Since(dns))
-		},
-	}
-
 	return &Client{
-		url:     u,
-		trace:   trace,
-		verbose: gas.Verbose,
+		url:    u,
+		trace:  transport.NewTrace(),
+		client: transport.NewRedirectClient(),
 	}
 }
 
@@ -99,11 +90,12 @@ func (c *Client) Get() (string, error) {
 	log.Debugf("REQUEST: %v", c.url.String())
 
 	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
-	req, _ := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
-	client := &http.Client{
-		CheckRedirect: logRedirect,
+	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	if err != nil {
+		return "", err
 	}
-	resp, err := client.Do(req)
+
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", err
 	}

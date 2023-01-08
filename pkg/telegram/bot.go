@@ -3,14 +3,13 @@ package telegram
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
-	"golang.org/x/net/proxy"
+	"github.com/dddpaul/alfafin-bot/pkg/transport"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -35,31 +34,7 @@ func WithSocks(s string) BotOption {
 		if len(s) == 0 {
 			return
 		}
-
-		u, err := url.Parse(s)
-		if err != nil {
-			log.Panic(err)
-		}
-
-		var auth *proxy.Auth
-		if u.User != nil {
-			auth = &proxy.Auth{
-				User: u.User.Username(),
-			}
-			if p, ok := u.User.Password(); ok {
-				auth.Password = p
-			}
-		}
-
-		dialer, err := proxy.SOCKS5("tcp", u.Host, auth, proxy.Direct)
-		if err != nil {
-			log.Panic(err)
-		}
-		httpTransport := &http.Transport{
-			Dial: dialer.Dial,
-		}
-		client := &http.Client{Transport: httpTransport}
-		b.client = client
+		b.client = transport.NewSocksClient(s)
 	}
 }
 
