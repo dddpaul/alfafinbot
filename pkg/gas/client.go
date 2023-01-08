@@ -2,7 +2,6 @@ package gas
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -60,25 +59,11 @@ func NewClient(gas *GASConfig, command string) *Client {
 	params.Add("command", command)
 	u.RawQuery = params.Encode()
 
-	var dns, connect, tlsHandshake time.Time
+	var dns time.Time
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
-		DNSDone: func(ddi httptrace.DNSDoneInfo) {
-			log.Debugf("DNS Done: %v", time.Since(dns))
-		},
-
-		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
-		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			log.Debugf("TLS Handshake: %v", time.Since(tlsHandshake))
-		},
-
-		ConnectStart: func(network, addr string) { connect = time.Now() },
-		ConnectDone: func(network, addr string, err error) {
-			log.Debugf("Connect time: %v", time.Since(connect))
-		},
-
 		GotFirstResponseByte: func() {
-			log.Debugf("Time from start to first byte: %v", time.Since(dns))
+			log.Debugf("RESPONSE: time to first byte received %v", time.Since(dns))
 		},
 	}
 
