@@ -64,21 +64,21 @@ func NewClient(gas *GASConfig, command string) *Client {
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
 		DNSDone: func(ddi httptrace.DNSDoneInfo) {
-			log.Printf("DNS Done: %v\n", time.Since(dns))
+			log.Printf("DNS Done: %v", time.Since(dns))
 		},
 
 		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			log.Printf("TLS Handshake: %v\n", time.Since(tlsHandshake))
+			log.Printf("TLS Handshake: %v", time.Since(tlsHandshake))
 		},
 
 		ConnectStart: func(network, addr string) { connect = time.Now() },
 		ConnectDone: func(network, addr string, err error) {
-			log.Printf("Connect time: %v\n", time.Since(connect))
+			log.Printf("Connect time: %v", time.Since(connect))
 		},
 
 		GotFirstResponseByte: func() {
-			log.Printf("Time from start to first byte: %v\n", time.Since(dns))
+			log.Printf("Time from start to first byte: %v", time.Since(dns))
 		},
 	}
 
@@ -123,7 +123,10 @@ func (c *Client) Get() (string, error) {
 
 	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
 	req, _ := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{
+		CheckRedirect: logRedirect,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -138,6 +141,11 @@ func (c *Client) Get() (string, error) {
 	}
 
 	return r.Message, nil
+}
+
+func logRedirect(req *http.Request, via []*http.Request) error {
+	log.Printf("REDIRECT: %v", req.URL.String())
+	return nil
 }
 
 // Parse HTTP response from Google App Script
