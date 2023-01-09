@@ -46,11 +46,11 @@ func LogRedirect(req *http.Request, via []*http.Request) error {
 }
 
 func NewTrace() *httptrace.ClientTrace {
-	var dns time.Time
+	var start time.Time
 	return &httptrace.ClientTrace{
-		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
+		GetConn: func(hostPort string) { start = time.Now() },
 		GotFirstResponseByte: func() {
-			log.Debugf("RESPONSE: time to first byte received %v", time.Since(dns))
+			log.Debugf("RESPONSE: time to first byte received %v", time.Since(start))
 		},
 	}
 }
