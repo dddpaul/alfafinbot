@@ -11,7 +11,11 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-func NewSocksClient(socks string) *http.Client {
+func NewSocksTransport(socks string) http.RoundTripper {
+	if len(socks) == 0 {
+		return http.DefaultTransport
+	}
+
 	u, err := url.Parse(socks)
 	if err != nil {
 		log.Panic(err)
@@ -31,23 +35,14 @@ func NewSocksClient(socks string) *http.Client {
 	if err != nil {
 		log.Panic(err)
 	}
-	transport := &http.Transport{
+	return &http.Transport{
 		Dial: dialer.Dial,
-	}
-
-	return &http.Client{
-		Transport: transport,
 	}
 }
 
-func NewRedirectClient() *http.Client {
-	return &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			log.Debugf("REDIRECT: %v", req.URL.String())
-			return nil
-		},
-	}
-
+func LogRedirect(req *http.Request, via []*http.Request) error {
+	log.Debugf("REDIRECT: %v", req.URL.String())
+	return nil
 }
 
 func NewTrace() *httptrace.ClientTrace {

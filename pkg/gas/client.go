@@ -21,6 +21,7 @@ const DF = "2006-01-02 15:04:05 -0700"
 
 type GASConfig struct {
 	Url          string
+	Socks        string
 	ClientID     string
 	ClientSecret string
 }
@@ -59,9 +60,12 @@ func NewClient(gas *GASConfig, command string) *Client {
 	u.RawQuery = params.Encode()
 
 	return &Client{
-		url:    u,
-		trace:  transport.NewTrace(),
-		client: transport.NewRedirectClient(),
+		url:   u,
+		trace: transport.NewTrace(),
+		client: &http.Client{
+			Transport:     transport.NewSocksTransport(gas.Socks),
+			CheckRedirect: transport.LogRedirect,
+		},
 	}
 }
 

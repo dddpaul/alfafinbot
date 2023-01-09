@@ -29,12 +29,11 @@ func WithVerbose(v bool) BotOption {
 	}
 }
 
-func WithSocks(s string) BotOption {
+func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
-		if len(s) == 0 {
-			return
+		b.client = &http.Client{
+			Transport: transport.NewSocksTransport(socks),
 		}
-		b.client = transport.NewSocksClient(s)
 	}
 }
 
@@ -44,10 +43,11 @@ func WithAdmin(a string) BotOption {
 	}
 }
 
-func WithGAS(url string, id string, secret string) BotOption {
+func WithGAS(url string, socks string, id string, secret string) BotOption {
 	return func(b *Bot) {
 		b.gasConfig = &gas.GASConfig{
 			Url:          url,
+			Socks:        socks,
 			ClientID:     id,
 			ClientSecret: secret,
 		}
