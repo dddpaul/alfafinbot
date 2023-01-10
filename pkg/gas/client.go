@@ -122,11 +122,6 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 	return r.Message, nil
 }
 
-func logRedirect(req *http.Request, via []*http.Request) error {
-	log.Debugf("REDIRECT: %v", req.URL.String())
-	return nil
-}
-
 // Parse HTTP response from Google App Script
 func parse(resp *http.Response) (*Response, error) {
 	data, err := ioutil.ReadAll(resp.Body)

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	log "github.com/sirupsen/logrus"
 
 	"golang.org/x/net/proxy"
@@ -41,7 +42,7 @@ func NewSocksTransport(socks string) http.RoundTripper {
 }
 
 func LogRedirect(req *http.Request, via []*http.Request) error {
-	log.Debugf("REDIRECT: %v", req.URL.String())
+	logger.ServerLog(req.Context(), nil).WithField("url", req.URL.String()).Debugf("redirect")
 	return nil
 }
 
