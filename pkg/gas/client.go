@@ -76,7 +76,14 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
 	log.Debugf("REQUEST: %v, BODY: &v", c.url.String(), params)
 
-	resp, err := http.PostForm(c.url.String(), params)
+	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
+	req, err := http.NewRequestWithContext(ctx, "POST", c.url.String(), strings.NewReader(params.Encode()))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", err
 	}
