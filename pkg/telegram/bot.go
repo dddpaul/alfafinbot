@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -105,7 +106,8 @@ func (b *Bot) Start() {
 		if !check("/today", m) {
 			return
 		}
-		resp, err := gas.NewClient(b.gasConfig, "today").Get()
+		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		resp, err := gas.NewClient(b.gasConfig, "today").Get(ctx)
 		if err != nil {
 			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -118,7 +120,8 @@ func (b *Bot) Start() {
 		if !check("/week", m) {
 			return
 		}
-		resp, err := gas.NewClient(b.gasConfig, "week").Get()
+		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		resp, err := gas.NewClient(b.gasConfig, "week").Get(ctx)
 		if err != nil {
 			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -131,7 +134,8 @@ func (b *Bot) Start() {
 		if !check("/month", m) {
 			return
 		}
-		resp, err := gas.NewClient(b.gasConfig, "month").Get()
+		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		resp, err := gas.NewClient(b.gasConfig, "month").Get(ctx)
 		if err != nil {
 			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -144,7 +148,8 @@ func (b *Bot) Start() {
 		if !check("/year", m) {
 			return
 		}
-		resp, err := gas.NewClient(b.gasConfig, "year").Get()
+		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		resp, err := gas.NewClient(b.gasConfig, "year").Get(ctx)
 		if err != nil {
 			log.Error("ERROR: %v", err)
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))

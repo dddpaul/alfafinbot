@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptrace"
@@ -13,6 +14,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"github.com/dddpaul/alfafin-bot/pkg/transport"
 )
@@ -97,11 +99,11 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	return r.Message, nil
 }
 
-func (c *Client) Get() (string, error) {
-	log.Debugf("REQUEST: %v", c.url.String())
+func (c *Client) Get(ctx context.Context) (string, error) {
+	logger.ServerLog(ctx, nil).WithField("url", c.url.String()).Debugf("request")
 
-	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	req, err := http.NewRequestWithContext(
+		httptrace.WithClientTrace(ctx, c.trace), "GET", c.url.String(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +117,7 @@ func (c *Client) Get() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("RESPONSE: %+v", r)
+	logger.ServerLog(ctx, nil).WithField("response", fmt.Sprintf("%+v", r)).Debugf("response")
 
 	return r.Message, nil
 }
