@@ -12,6 +12,7 @@ import (
 
 var (
 	verbose          bool
+	trace            bool
 	telegramToken    string
 	telegramProxyURL string
 	telegramAdmin    string
@@ -23,6 +24,7 @@ var (
 
 func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable bot debug")
+	flag.BoolVar(&verbose, "trace", false, "Enable network tracing")
 	flag.StringVar(&telegramToken, "telegram-token", LookupEnvOrString("TELEGRAM_TOKEN", ""), "Telegram API token")
 	flag.StringVar(&telegramProxyURL, "telegram-proxy-url", LookupEnvOrString("TELEGRAM_PROXY_URL", ""), "Telegram SOCKS5 proxy url")
 	flag.StringVar(&telegramAdmin, "telegram-admin", LookupEnvOrString("TELEGRAM_ADMIN", ""), "Telegram admin user")
@@ -43,6 +45,10 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	if trace {
+		log.SetLevel(log.TraceLevel)
+	}
+
 	if len(telegramToken) == 0 {
 		log.Panic("Telegram API token has to be specified")
 	}
@@ -53,7 +59,7 @@ func main() {
 		telegram.WithSocks(telegramProxyURL),
 		telegram.WithGAS(gasURL, gasProxyURL, gasClientID, gasClientSecret))
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	bot.Start()
