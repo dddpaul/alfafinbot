@@ -48,7 +48,7 @@ func (r *Response) isError() bool {
 	return r.Status != OK
 }
 
-func NewClient(gas *GASConfig, command string) *Client {
+func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
 	u, err := url.Parse(gas.Url)
 	if err != nil {
 		panic(err)
@@ -61,7 +61,7 @@ func NewClient(gas *GASConfig, command string) *Client {
 
 	return &Client{
 		url:   u,
-		trace: transport.NewTrace(),
+		trace: transport.NewTrace(ctx),
 		client: &http.Client{
 			Transport:     transport.NewSocksTransport(gas.Socks),
 			CheckRedirect: transport.LogRedirect,

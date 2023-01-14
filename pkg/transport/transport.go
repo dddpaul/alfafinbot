@@ -1,13 +1,13 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptrace"
 	"net/url"
 	"time"
 
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
-	log "github.com/sirupsen/logrus"
 
 	"golang.org/x/net/proxy"
 )
@@ -19,7 +19,7 @@ func NewSocksTransport(socks string) http.RoundTripper {
 
 	u, err := url.Parse(socks)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	var auth *proxy.Auth
@@ -34,7 +34,7 @@ func NewSocksTransport(socks string) http.RoundTripper {
 
 	dialer, err := proxy.SOCKS5("tcp", u.Host, auth, proxy.Direct)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 	return &http.Transport{
 		Dial: dialer.Dial,
@@ -46,12 +46,12 @@ func LogRedirect(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func NewTrace() *httptrace.ClientTrace {
+func NewTrace(ctx context.Context) *httptrace.ClientTrace {
 	var start time.Time
 	return &httptrace.ClientTrace{
 		GetConn: func(hostPort string) { start = time.Now() },
 		GotFirstResponseByte: func() {
-			log.Debugf("RESPONSE: time to first byte received %v", time.Since(start))
+			logger.Log(ctx, nil).WithField("time_to_first_byte_received", time.Since(start)).Debugf("response")
 		},
 	}
 }

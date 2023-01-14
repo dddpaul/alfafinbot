@@ -88,7 +88,7 @@ func (b *Bot) Start() {
 	}
 
 	add := func(ctx context.Context, p *purchases.Purchase) {
-		resp, err := gas.NewClient(b.gasConfig, "").Add(ctx, p)
+		resp, err := gas.NewClient(ctx, b.gasConfig, "").Add(ctx, p)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			return
@@ -108,7 +108,7 @@ func (b *Bot) Start() {
 			return
 		}
 		ctx := newContext(m)
-		resp, err := gas.NewClient(b.gasConfig, "today").Get(ctx)
+		resp, err := gas.NewClient(ctx, b.gasConfig, "today").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -122,7 +122,7 @@ func (b *Bot) Start() {
 			return
 		}
 		ctx := newContext(m)
-		resp, err := gas.NewClient(b.gasConfig, "week").Get(ctx)
+		resp, err := gas.NewClient(ctx, b.gasConfig, "week").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -136,7 +136,7 @@ func (b *Bot) Start() {
 			return
 		}
 		ctx := newContext(m)
-		resp, err := gas.NewClient(b.gasConfig, "month").Get(ctx)
+		resp, err := gas.NewClient(ctx, b.gasConfig, "month").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -150,7 +150,7 @@ func (b *Bot) Start() {
 			return
 		}
 		ctx := newContext(m)
-		resp, err := gas.NewClient(b.gasConfig, "year").Get(ctx)
+		resp, err := gas.NewClient(ctx, b.gasConfig, "year").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
