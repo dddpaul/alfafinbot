@@ -54,7 +54,6 @@ func main() {
 	}
 
 	bot, err := telegram.NewBot(telegramToken,
-		telegram.WithVerbose(verbose),
 		telegram.WithAdmin(telegramAdmin),
 		telegram.WithSocks(telegramProxyURL),
 		telegram.WithGAS(gasURL, gasProxyURL, gasClientID, gasClientSecret))

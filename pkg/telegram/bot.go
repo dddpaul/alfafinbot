@@ -17,19 +17,12 @@ import (
 
 type Bot struct {
 	bot       *tb.Bot
-	verbose   bool
 	admin     string
 	gasConfig *gas.GASConfig
 	client    *http.Client
 }
 
 type BotOption func(b *Bot)
-
-func WithVerbose(v bool) BotOption {
-	return func(b *Bot) {
-		b.verbose = v
-	}
-}
 
 func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
