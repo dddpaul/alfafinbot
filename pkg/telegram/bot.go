@@ -71,7 +71,7 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Authorized on account %s\n", bot.Me.Username)
+	log.Infof("Authorized on account %s\n", bot.Me.Username)
 
 	b.bot = bot
 	return b, nil
@@ -79,7 +79,7 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 
 func (b *Bot) Start() {
 	check := func(cmd string, m *tb.Message) bool {
-		log.Printf("Received '%s' command from '%s'", cmd, m.Sender.Username)
+		log.Infof("Received '%s' command from '%s'", cmd, m.Sender.Username)
 		if b.admin != "" && b.admin != m.Sender.Username {
 			b.bot.Send(m.Sender, "ERROR: Access restricted")
 			return false
@@ -160,7 +160,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
-		log.Debugf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
+		log.Infof("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
 		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
@@ -171,7 +171,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		log.Debugf("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
+		log.Infof("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
 		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
