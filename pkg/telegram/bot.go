@@ -160,9 +160,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
-		if b.verbose {
-			log.Printf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
-		}
+		log.Debugf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
 		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
@@ -173,9 +171,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		if b.verbose {
-			log.Printf("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
-		}
+		log.Debugf("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
 		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
