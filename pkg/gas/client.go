@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"github.com/dddpaul/alfafin-bot/pkg/transport"
@@ -53,7 +51,7 @@ func (r *Response) isError() bool {
 func NewClient(gas *GASConfig, command string) *Client {
 	u, err := url.Parse(gas.Url)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 	params := url.Values{}
 	params.Add("client_id", gas.ClientID)
@@ -71,15 +69,18 @@ func NewClient(gas *GASConfig, command string) *Client {
 	}
 }
 
-func (c *Client) Add(p *purchases.Purchase) (string, error) {
+func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error) {
 	params := url.Values{}
 	params.Add("time", p.Time.Format(DF))
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
-	log.Debugf("REQUEST: %v, BODY: &v", c.url.String(), params)
+	logger.Log(ctx, nil).WithField("url", c.url.String()).WithField("body", fmt.Sprintf("%+v", params)).Debugf("request")
 
-	ctx := httptrace.WithClientTrace(context.Background(), c.trace)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.url.String(), strings.NewReader(params.Encode()))
+	req, err := http.NewRequestWithContext(
+		httptrace.WithClientTrace(ctx, c.trace),
+		"POST",
+		c.url.String(),
+		strings.NewReader(params.Encode()))
 	if err != nil {
 		return "", err
 	}
@@ -94,16 +95,19 @@ func (c *Client) Add(p *purchases.Purchase) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("RESPONSE: %+v", r)
+	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 
 	return r.Message, nil
 }
 
 func (c *Client) Get(ctx context.Context) (string, error) {
-	logger.ServerLog(ctx, nil).WithField("url", c.url.String()).Debugf("request")
+	logger.Log(ctx, nil).WithField("url", c.url.String()).Debugf("request")
 
 	req, err := http.NewRequestWithContext(
-		httptrace.WithClientTrace(ctx, c.trace), "GET", c.url.String(), nil)
+		httptrace.WithClientTrace(ctx, c.trace),
+		"GET",
+		c.url.String(),
+		nil)
 	if err != nil {
 		return "", err
 	}
@@ -117,7 +121,7 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logger.ServerLog(ctx, nil).WithField("response", fmt.Sprintf("%+v", r)).Debugf("response")
+	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 
 	return r.Message, nil
 }

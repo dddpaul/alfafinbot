@@ -42,7 +42,7 @@ func NewSocksTransport(socks string) http.RoundTripper {
 }
 
 func LogRedirect(req *http.Request, via []*http.Request) error {
-	logger.ServerLog(req.Context(), nil).WithField("url", req.URL.String()).Debugf("redirect")
+	logger.Log(req.Context(), nil).WithField("url", req.URL.String()).Debugf("redirect")
 	return nil
 }
 

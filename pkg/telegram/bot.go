@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dddpaul/alfafin-bot/pkg/gas"
+	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"github.com/dddpaul/alfafin-bot/pkg/transport"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -86,10 +87,10 @@ func (b *Bot) Start() {
 		return true
 	}
 
-	add := func(p *purchases.Purchase) {
-		resp, err := gas.NewClient(b.gasConfig, "").Add(p)
+	add := func(ctx context.Context, p *purchases.Purchase) {
+		resp, err := gas.NewClient(b.gasConfig, "").Add(ctx, p)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			return
 		}
 		log.Printf("Purchase %v have been added to sheet", resp)
@@ -106,10 +107,10 @@ func (b *Bot) Start() {
 		if !check("/today", m) {
 			return
 		}
-		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		ctx := newContext(m)
 		resp, err := gas.NewClient(b.gasConfig, "today").Get(ctx)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -120,10 +121,10 @@ func (b *Bot) Start() {
 		if !check("/week", m) {
 			return
 		}
-		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		ctx := newContext(m)
 		resp, err := gas.NewClient(b.gasConfig, "week").Get(ctx)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -134,10 +135,10 @@ func (b *Bot) Start() {
 		if !check("/month", m) {
 			return
 		}
-		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		ctx := newContext(m)
 		resp, err := gas.NewClient(b.gasConfig, "month").Get(ctx)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -148,10 +149,10 @@ func (b *Bot) Start() {
 		if !check("/year", m) {
 			return
 		}
-		ctx := context.WithValue(context.Background(), "message_id", m.ID)
+		ctx := newContext(m)
 		resp, err := gas.NewClient(b.gasConfig, "year").Get(ctx)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
 			return
 		}
@@ -162,24 +163,26 @@ func (b *Bot) Start() {
 		if b.verbose {
 			log.Printf("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
 		}
+		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			return
 		}
-		add(p)
+		add(newContext(m), p)
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
 		if b.verbose {
 			log.Printf("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
 		}
+		ctx := newContext(m)
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
-			log.Error("ERROR: %v", err)
+			logger.Log(ctx, err).Errorf("error")
 			return
 		}
-		add(p)
+		add(newContext(m), p)
 	})
 
 	b.bot.Start()
@@ -190,4 +193,8 @@ func getTime(m *tb.Message) time.Time {
 		return time.Unix(int64(m.OriginalUnixtime), 0)
 	}
 	return m.Time()
+}
+
+func newContext(m *tb.Message) context.Context {
+	return context.WithValue(context.Background(), "message_id", m.ID)
 }

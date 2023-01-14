@@ -6,8 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ServerLog(ctx context.Context, err error) *log.Entry {
-	entry := log.WithField("package", "server")
+func Log(ctx context.Context, err error) *log.Entry {
+	entry := log.WithContext(ctx)
 	if err != nil {
 		entry = entry.WithField("error", err)
 	}
