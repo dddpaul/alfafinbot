@@ -24,7 +24,7 @@ var (
 
 func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable bot debug")
-	flag.BoolVar(&verbose, "trace", false, "Enable network tracing")
+	flag.BoolVar(&trace, "trace", false, "Enable network tracing")
 	flag.StringVar(&telegramToken, "telegram-token", LookupEnvOrString("TELEGRAM_TOKEN", ""), "Telegram API token")
 	flag.StringVar(&telegramProxyURL, "telegram-proxy-url", LookupEnvOrString("TELEGRAM_PROXY_URL", ""), "Telegram SOCKS5 proxy url")
 	flag.StringVar(&telegramAdmin, "telegram-admin", LookupEnvOrString("TELEGRAM_ADMIN", ""), "Telegram admin user")
