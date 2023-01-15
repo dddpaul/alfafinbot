@@ -71,8 +71,8 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 }
 
 func (b *Bot) Start() {
-	check := func(cmd string, m *tb.Message) bool {
-		log.Infof("Received '%s' command from '%s'", cmd, m.Sender.Username)
+	check := func(ctx context.Context, cmd string, m *tb.Message) bool {
+		logger.Log(ctx, nil).WithField("sender", m.Sender.Username).WithField("command", cmd).Infof("command")
 		if b.admin != "" && b.admin != m.Sender.Username {
 			b.bot.Send(m.Sender, "ERROR: Access restricted")
 			return false
@@ -86,21 +86,22 @@ func (b *Bot) Start() {
 			logger.Log(ctx, err).Errorf("error")
 			return
 		}
-		log.Printf("Purchase %v have been added to sheet", resp)
+		logger.Log(ctx, nil).WithField("purchase", resp).Infof("purchase")
 	}
 
 	b.bot.Handle("/status", func(m *tb.Message) {
-		if !check("/status", m) {
+		ctx := newContext(m)
+		if !check(ctx, "/status", m) {
 			return
 		}
 		b.bot.Send(m.Sender, fmt.Sprintf("I'm fine"))
 	})
 
 	b.bot.Handle("/today", func(m *tb.Message) {
-		if !check("/today", m) {
+		ctx := newContext(m)
+		if !check(ctx, "/today", m) {
 			return
 		}
-		ctx := newContext(m)
 		resp, err := gas.NewClient(ctx, b.gasConfig, "today").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
@@ -111,10 +112,10 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/week", func(m *tb.Message) {
-		if !check("/week", m) {
+		ctx := newContext(m)
+		if !check(ctx, "/week", m) {
 			return
 		}
-		ctx := newContext(m)
 		resp, err := gas.NewClient(ctx, b.gasConfig, "week").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
@@ -125,10 +126,10 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/month", func(m *tb.Message) {
-		if !check("/month", m) {
+		ctx := newContext(m)
+		if !check(ctx, "/month", m) {
 			return
 		}
-		ctx := newContext(m)
 		resp, err := gas.NewClient(ctx, b.gasConfig, "month").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
@@ -139,10 +140,10 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/year", func(m *tb.Message) {
-		if !check("/year", m) {
+		ctx := newContext(m)
+		if !check(ctx, "/year", m) {
 			return
 		}
-		ctx := newContext(m)
 		resp, err := gas.NewClient(ctx, b.gasConfig, "year").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
@@ -153,25 +154,25 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
-		log.Infof("Text: \"%s\", forwarded: %t", m.Text, m.IsForwarded())
 		ctx := newContext(m)
+		logger.Log(ctx, nil).WithField("text", m.Text).WithField("forwarded", m.IsForwarded()).Infof("text")
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			return
 		}
-		add(newContext(m), p)
+		add(ctx, p)
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		log.Infof("Photo with caption: \"%s\", forwarded: %t", m.Caption, m.IsForwarded())
 		ctx := newContext(m)
+		logger.Log(ctx, nil).WithField("caption", m.Caption).WithField("forwarded", m.IsForwarded()).Infof("photo with caption")
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			return
 		}
-		add(newContext(m), p)
+		add(ctx, p)
 	})
 
 	b.bot.Start()
