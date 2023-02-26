@@ -63,7 +63,7 @@ func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
 		url:   u,
 		trace: transport.NewTrace(ctx),
 		client: &http.Client{
-			Transport:     transport.NewSocksTransport(gas.Socks),
+			Transport:     transport.New(gas.Socks),
 			CheckRedirect: transport.LogRedirect,
 		},
 	}

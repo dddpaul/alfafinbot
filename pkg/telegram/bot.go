@@ -27,7 +27,7 @@ type BotOption func(b *Bot)
 func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
 		b.client = &http.Client{
-			Transport: transport.NewSocksTransport(socks),
+			Transport: transport.New(socks),
 		}
 	}
 }

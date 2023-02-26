@@ -10,7 +10,7 @@ import (
 	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 )
 
-func NewSocksTransport(socks string) http.RoundTripper {
+func New(socks string) http.RoundTripper {
 	return &http.Transport{
 		Dial: proxy.NewDialer(socks).Dial,
 	}
