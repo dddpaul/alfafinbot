@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptrace"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -37,6 +38,10 @@ func Log(ctx context.Context, err error) *log.Entry {
 }
 
 func LogRedirect(req *http.Request, via []*http.Request) error {
-	Log(req.Context(), nil).WithField("url", req.URL.String()).Debugf("redirect")
+	Log(req.Context(), nil).WithField("url", escape(req.URL.String())).Debugf("redirect")
 	return nil
+}
+
+func escape(s string) string {
+	return strings.Replace(strings.Replace(s, "\n", "", -1), "\r", "", -1)
 }
