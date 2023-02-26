@@ -10,8 +10,8 @@ import (
 
 	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
+	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
-	"github.com/dddpaul/alfafin-bot/pkg/transport"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -27,7 +27,7 @@ type BotOption func(b *Bot)
 func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
 		b.client = &http.Client{
-			Transport: transport.NewSocksTransport(socks),
+			Transport: proxy.NewTransport(socks),
 		}
 	}
 }
@@ -90,15 +90,15 @@ func (b *Bot) Start() {
 	}
 
 	b.bot.Handle("/status", func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		if !check(ctx, "/status", m) {
 			return
 		}
-		b.bot.Send(m.Sender, fmt.Sprintf("I'm fine"))
+		b.bot.Send(m.Sender, "I'm fine")
 	})
 
 	b.bot.Handle("/today", func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		if !check(ctx, "/today", m) {
 			return
 		}
@@ -112,7 +112,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/week", func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		if !check(ctx, "/week", m) {
 			return
 		}
@@ -126,7 +126,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/month", func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		if !check(ctx, "/month", m) {
 			return
 		}
@@ -140,7 +140,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle("/year", func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		if !check(ctx, "/year", m) {
 			return
 		}
@@ -154,7 +154,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		logger.Log(ctx, nil).WithField("text", m.Text).WithField("forwarded", m.IsForwarded()).Infof("text")
 		p, err := purchases.New(getTime(m), m.Text)
 		if err != nil {
@@ -165,7 +165,7 @@ func (b *Bot) Start() {
 	})
 
 	b.bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		ctx := newContext(m)
+		ctx := logger.WithMessageID(m.ID)
 		logger.Log(ctx, nil).WithField("caption", m.Caption).WithField("forwarded", m.IsForwarded()).Infof("photo with caption")
 		p, err := purchases.New(getTime(m), m.Caption)
 		if err != nil {
@@ -183,8 +183,4 @@ func getTime(m *tb.Message) time.Time {
 		return time.Unix(int64(m.OriginalUnixtime), 0)
 	}
 	return m.Time()
-}
-
-func newContext(m *tb.Message) context.Context {
-	return context.WithValue(context.Background(), "message_id", m.ID)
 }

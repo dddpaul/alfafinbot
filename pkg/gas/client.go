@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
+	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
-	"github.com/dddpaul/alfafin-bot/pkg/transport"
 )
 
 const DF = "2006-01-02 15:04:05 -0700"
@@ -61,10 +61,10 @@ func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
 
 	return &Client{
 		url:   u,
-		trace: transport.NewTrace(ctx),
+		trace: logger.NewTrace(ctx),
 		client: &http.Client{
-			Transport:     transport.NewSocksTransport(gas.Socks),
-			CheckRedirect: transport.LogRedirect,
+			Transport:     proxy.NewTransport(gas.Socks),
+			CheckRedirect: logger.LogRedirect,
 		},
 	}
 }
