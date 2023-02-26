@@ -94,7 +94,7 @@ func (b *Bot) Start() {
 		if !check(ctx, "/status", m) {
 			return
 		}
-		b.bot.Send(m.Sender, fmt.Sprintf("I'm fine"))
+		b.bot.Send(m.Sender, "I'm fine")
 	})
 
 	b.bot.Handle("/today", func(m *tb.Message) {
