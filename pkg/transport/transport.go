@@ -16,11 +16,6 @@ func New(socks string) http.RoundTripper {
 	}
 }
 
-func LogRedirect(req *http.Request, via []*http.Request) error {
-	logger.Log(req.Context(), nil).WithField("url", req.URL.String()).Debugf("redirect")
-	return nil
-}
-
 func NewTrace(ctx context.Context) *httptrace.ClientTrace {
 	var start time.Time
 	return &httptrace.ClientTrace{
