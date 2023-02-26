@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
+	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"github.com/dddpaul/alfafin-bot/pkg/transport"
 )
@@ -63,7 +64,7 @@ func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
 		url:   u,
 		trace: transport.NewTrace(ctx),
 		client: &http.Client{
-			Transport:     transport.New(gas.Socks),
+			Transport:     proxy.NewTransport(gas.Socks),
 			CheckRedirect: logger.LogRedirect,
 		},
 	}

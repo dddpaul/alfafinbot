@@ -10,8 +10,8 @@ import (
 
 	"github.com/dddpaul/alfafin-bot/pkg/gas"
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
+	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
-	"github.com/dddpaul/alfafin-bot/pkg/transport"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -27,7 +27,7 @@ type BotOption func(b *Bot)
 func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
 		b.client = &http.Client{
-			Transport: transport.New(socks),
+			Transport: proxy.NewTransport(socks),
 		}
 	}
 }

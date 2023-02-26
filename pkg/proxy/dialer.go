@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"net"
+	"net/http"
 	"net/url"
 
 	log "github.com/sirupsen/logrus"
@@ -10,7 +11,13 @@ import (
 
 var directDialer = &net.Dialer{}
 
-func NewDialer(socks string) proxy.Dialer {
+func NewTransport(socks string) http.RoundTripper {
+	return &http.Transport{
+		Dial: newDialer(socks).Dial,
+	}
+}
+
+func newDialer(socks string) proxy.Dialer {
 	if len(socks) == 0 {
 		log.Infof("SOCKS5 proxy URL is empty, use DIRECT connection")
 		return directDialer

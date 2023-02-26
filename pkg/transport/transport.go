@@ -2,19 +2,11 @@ package transport
 
 import (
 	"context"
-	"net/http"
 	"net/http/httptrace"
 	"time"
 
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
-	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 )
-
-func New(socks string) http.RoundTripper {
-	return &http.Transport{
-		Dial: proxy.NewDialer(socks).Dial,
-	}
-}
 
 func NewTrace(ctx context.Context) *httptrace.ClientTrace {
 	var start time.Time
