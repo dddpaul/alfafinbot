@@ -1,10 +1,14 @@
 package purchases
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"slices"
+
+	"github.com/dddpaul/cbr-currency-go"
 	"github.com/natekfl/untemplate"
 )
 
@@ -17,18 +21,19 @@ const (
 
 var ut1 *untemplate.Untemplater
 var ut2 *untemplate.Untemplater
-var df string
+var roubleSymbols = []string{"RUB", "RUR", "₽"}
 
 func init() {
 	var err error
-	ut1, err = untemplate.Create("Покупка {price} ₽, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	ut1, err = untemplate.Create("Покупка {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
-	ut2, err = untemplate.Create("Отмена операции {price} ₽, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	ut2, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
+	cbr.UpdateCurrencyRates()
 }
 
 type Purchase struct {
@@ -37,6 +42,8 @@ type Purchase struct {
 	Merchant string
 	Card     string
 	Balance  float64
+	Currency string
+	PriceRUB float64
 }
 
 func New(t time.Time, s string) (*Purchase, error) {
@@ -65,12 +72,19 @@ func New(t time.Time, s string) (*Purchase, error) {
 		return nil, err
 	}
 
+	priceRUB, err := calcRoublePrice(price, m["currency"])
+	if err != nil {
+		return nil, err
+	}
+
 	return &Purchase{
 		Time:     t,
 		Price:    price,
 		Merchant: m["merchant"],
 		Card:     m["card"],
 		Balance:  balance,
+		Currency: m["currency"],
+		PriceRUB: priceRUB,
 	}, nil
 }
 
@@ -79,4 +93,14 @@ func parseFloat(s string) (float64, error) {
 	s1 = strings.ReplaceAll(s1, " ", "")
 	s1 = strings.ReplaceAll(s1, "\u00A0", "")
 	return strconv.ParseFloat(s1, 64)
+}
+
+func calcRoublePrice(price float64, currency string) (float64, error) {
+	if slices.Contains(roubleSymbols, currency) {
+		return price, nil
+	}
+	if rate, ok := cbr.GetCurrencyRates()[currency]; ok {
+		return price * rate.Value, nil
+	}
+	return 0, fmt.Errorf("unknown currency %s", currency)
 }
