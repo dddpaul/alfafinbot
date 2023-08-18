@@ -3,7 +3,7 @@ module github.com/dddpaul/alfafin-bot
 go 1.20
 
 require (
-	github.com/dddpaul/cbr-currency-go v1.0.6
+	github.com/dddpaul/cbr-currency-go v1.0.7
 	github.com/natekfl/untemplate v1.0.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
