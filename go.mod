@@ -1,6 +1,6 @@
 module github.com/dddpaul/alfafin-bot
 
-go 1.20
+go 1.21
 
 require (
 	github.com/dddpaul/cbr-currency-go v1.0.7
