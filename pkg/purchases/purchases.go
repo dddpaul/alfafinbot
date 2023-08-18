@@ -21,6 +21,7 @@ const (
 
 var ut1 *untemplate.Untemplater
 var ut2 *untemplate.Untemplater
+var ut3 *untemplate.Untemplater
 var roubleSymbols = []string{"RUB", "RUR", "₽"}
 
 func init() {
@@ -29,7 +30,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	ut2, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	ut2, err = untemplate.Create("{card} Pokupka {price} {currency} Balans {balance} RUR {merchant_datetime}")
+	if err != nil {
+		panic(err)
+	}
+	ut3, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
@@ -52,10 +57,13 @@ func New(t time.Time, s string) (*Purchase, error) {
 
 	m, err := ut1.Extract(s1)
 	if err != nil {
-		op = Cancel
 		m, err = ut2.Extract(s1)
 		if err != nil {
-			return nil, err
+			op = Cancel
+			m, err = ut3.Extract(s1)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -77,10 +85,16 @@ func New(t time.Time, s string) (*Purchase, error) {
 		return nil, err
 	}
 
+	// TODO: Add parsing with regexp
+	merchant := m["merchant"]
+	if md, ok := m["merchant_datetime"]; ok {
+		merchant = md
+	}
+
 	return &Purchase{
 		Time:     t,
 		Price:    price,
-		Merchant: m["merchant"],
+		Merchant: merchant,
 		Card:     m["card"],
 		Balance:  balance,
 		Currency: m["currency"],
