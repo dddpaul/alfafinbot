@@ -74,6 +74,8 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 	params.Add("time", p.Time.Format(DF))
 	params.Add("merchant", p.Merchant)
 	params.Add("price", strconv.FormatFloat(p.Price, 'f', 2, 64))
+	params.Add("currency", p.Currency)
+	params.Add("priceRUB", strconv.FormatFloat(p.Price, 'f', 2, 64))
 	logger.Log(ctx, nil).WithField("url", c.url.String()).WithField("body", fmt.Sprintf("%+v", params)).Debugf("request")
 
 	req, err := http.NewRequestWithContext(
