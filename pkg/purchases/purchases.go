@@ -2,6 +2,7 @@ package purchases
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -77,6 +78,7 @@ func New(dt time.Time, s string) (*Purchase, error) {
 	if err != nil {
 		return nil, err
 	}
+	price = roundFloat(price, 2)
 	if op == Cancel {
 		price = -price
 	}
@@ -99,7 +101,7 @@ func New(dt time.Time, s string) (*Purchase, error) {
 		return nil, fmt.Errorf("unknown currency %s", m["currency"])
 	}
 
-	priceRUB, err := calcRoublePrice(price, m["currency"])
+	priceRUB, err := calcRoublePrice(price, m["currency"], dt)
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +136,25 @@ func parseMerchantAndDatetime(md string) (string, time.Time, error) {
 	return tokens[1], dt, nil
 }
 
-func calcRoublePrice(price float64, currency string) (float64, error) {
+func calcRoublePrice(price float64, currency string, dt time.Time) (float64, error) {
 	if slices.Contains(roubleSymbols, currency) {
-		return price, nil
+		return roundFloat(price, 2), nil
 	}
-	if rate, ok := cbr.GetCurrencyRates()[currency]; ok {
-		return price * rate.Value, nil
+	rates := cbr.GetCurrencyRates()
+	if time.Now().Truncate(time.Hour*24) != dt.Truncate(time.Hour*24) {
+		var err error
+		rates, err = cbr.FetchCurrencyRates(dt)
+		if err != nil {
+			return 0, err
+		}
 	}
-	return 0, fmt.Errorf("unknown currency %s", currency)
+	if rate, ok := rates[currency]; ok {
+		return roundFloat(price*rate.Value, 2), nil
+	}
+	return 0, fmt.Errorf("unknown currency: %s", currency)
+}
+
+func roundFloat(val float64, precision uint) float64 {
+	ratio := math.Pow(10, float64(precision))
+	return math.Round(val*ratio) / ratio
 }
