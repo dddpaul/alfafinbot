@@ -63,6 +63,13 @@ func TestNewAMDPurchase(t *testing.T) {
 	assert.Equal(t, "YANDEX GO", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
 	assert.Equal(t, 10000.12, p.Balance)
+
+	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO ABC123 16.08.2023 07:36")
+	assert.Nil(t, err)
+	assert.Equal(t, "YANDEX GO ABC123", p.Merchant)
+
+	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 25:36")
+	assert.NotNil(t, err, "Invalid datetime value should not be parsed")
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {
