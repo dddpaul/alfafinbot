@@ -35,8 +35,8 @@ type Client struct {
 type Status int64
 
 const (
-	OK    Status = 0
-	ERROR        = 1
+	OK Status = iota
+	ERROR
 )
 
 type Response struct {
@@ -46,6 +46,22 @@ type Response struct {
 
 func (r *Response) isError() bool {
 	return r.Status != OK
+}
+
+type ErrorCode int64
+
+const (
+	OTHER ErrorCode = iota
+	TIMEOUT
+)
+
+type GASError struct {
+	message string
+	code    ErrorCode
+}
+
+func (e GASError) Error() string {
+	return fmt.Sprintf("error message: %s, code: %d", e.message, e.code)
 }
 
 func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
@@ -95,6 +111,12 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 
 	r, err := parse(resp)
 	if err != nil {
+		var gasError *GASError
+		if errors.As(err, gasError) {
+			if gasError.code == TIMEOUT {
+				// TODO: retry
+			}
+		}
 		return "", err
 	}
 	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
@@ -138,7 +160,11 @@ func parse(resp *http.Response) (*Response, error) {
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		return nil, errors.New("GAS: " + after(s, "Error: "))
+		errorMessage := after(s, "Error: ")
+		if strings.HasPrefix(errorMessage, "Timeout") {
+			return nil, GASError{message: errorMessage, code: TIMEOUT}
+		}
+		return nil, GASError{message: errorMessage, code: OTHER}
 	}
 
 	r := &Response{}
