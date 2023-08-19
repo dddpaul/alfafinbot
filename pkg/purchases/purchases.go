@@ -21,12 +21,13 @@ const (
 )
 
 var (
-	ut1           *untemplate.Untemplater
-	ut2           *untemplate.Untemplater
-	ut3           *untemplate.Untemplater
-	mdRegexp      = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
-	df            = "02.01.2006 15:04"
-	roubleSymbols = []string{"RUB", "RUR", "₽"}
+	ut1             *untemplate.Untemplater
+	ut2             *untemplate.Untemplater
+	ut3             *untemplate.Untemplater
+	mdRegexp        = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
+	df              = "02.01.2006 15:04"
+	currencySymbols = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
+	roubleSymbols   = []string{"RUB", "RUR", "₽"}
 )
 
 func init() {
@@ -93,6 +94,11 @@ func New(dt time.Time, s string) (*Purchase, error) {
 		}
 	}
 
+	currencySymbol, ok := currencySymbols[m["currency"]]
+	if !ok {
+		return nil, fmt.Errorf("unknown currency %s", m["currency"])
+	}
+
 	priceRUB, err := calcRoublePrice(price, m["currency"])
 	if err != nil {
 		return nil, err
@@ -104,7 +110,7 @@ func New(dt time.Time, s string) (*Purchase, error) {
 		Merchant: merchant,
 		Card:     m["card"],
 		Balance:  balance,
-		Currency: m["currency"],
+		Currency: currencySymbol,
 		PriceRUB: priceRUB,
 	}, nil
 }

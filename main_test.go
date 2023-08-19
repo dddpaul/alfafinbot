@@ -18,6 +18,7 @@ func TestNewPurchase(t *testing.T) {
 	assert.Equal(t, "Озон", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
 	assert.Equal(t, 4506.85, p.Balance)
+	assert.Equal(t, "₽", p.Currency)
 
 	p, err = newPurchase("Покупка 527.11 ₽, Озон.\nКарта **1111. Баланс: 4506.85 ₽")
 	assert.Nil(t, err)
@@ -63,6 +64,7 @@ func TestNewAMDPurchase(t *testing.T) {
 	assert.Equal(t, "YANDEX GO", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
 	assert.Equal(t, 10000.12, p.Balance)
+	assert.Equal(t, "֏", p.Currency)
 
 	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO ABC123 16.08.2023 07:36")
 	assert.Nil(t, err)
