@@ -56,7 +56,7 @@ type Purchase struct {
 	PriceRUB float64
 }
 
-func New(t time.Time, s string) (*Purchase, error) {
+func New(dt time.Time, s string) (*Purchase, error) {
 	s1 := strings.ReplaceAll(s, "\n", " ")
 	op := Buy
 
@@ -87,7 +87,7 @@ func New(t time.Time, s string) (*Purchase, error) {
 
 	merchant := m["merchant"]
 	if md, ok := m["merchant_datetime"]; ok {
-		merchant, t, err = parseMerchantAndDatetime(md)
+		merchant, dt, err = parseMerchantAndDatetime(md)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func New(t time.Time, s string) (*Purchase, error) {
 	}
 
 	return &Purchase{
-		Time:     t,
+		Time:     dt,
 		Price:    price,
 		Merchant: merchant,
 		Card:     m["card"],
@@ -121,11 +121,11 @@ func parseMerchantAndDatetime(md string) (string, time.Time, error) {
 	if len(tokens) != 3 {
 		return "", time.Time{}, fmt.Errorf("incorrent merchant and datetime format: %s", md)
 	}
-	t, err := time.Parse(df, tokens[2])
+	dt, err := time.Parse(df, tokens[2])
 	if err != nil {
 		return "", time.Time{}, err
 	}
-	return tokens[1], t, nil
+	return tokens[1], dt, nil
 }
 
 func calcRoublePrice(price float64, currency string) (float64, error) {
