@@ -9,7 +9,7 @@ import (
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 )
 
-const DF = "02.01.2006"
+var df = "02.01.2006 15:04"
 
 func TestNewPurchase(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
@@ -57,6 +57,8 @@ func TestNewPurchase(t *testing.T) {
 func TestNewAMDPurchase(t *testing.T) {
 	p, err := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
 	assert.Nil(t, err)
+	dt, _ := time.Parse(df, "16.08.2023 07:36")
+	assert.Equal(t, dt, p.Time)
 	assert.Equal(t, 1234567.0, p.Price)
 	assert.Equal(t, "YANDEX GO", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)

@@ -25,6 +25,7 @@ var (
 	ut2           *untemplate.Untemplater
 	ut3           *untemplate.Untemplater
 	mdRegexp      = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
+	df            = "02.01.2006 15:04"
 	roubleSymbols = []string{"RUB", "RUR", "₽"}
 )
 
@@ -86,7 +87,7 @@ func New(t time.Time, s string) (*Purchase, error) {
 
 	merchant := m["merchant"]
 	if md, ok := m["merchant_datetime"]; ok {
-		merchant, err = parseMerchantAndDatetime(md)
+		merchant, t, err = parseMerchantAndDatetime(md)
 		if err != nil {
 			return nil, err
 		}
@@ -115,12 +116,16 @@ func parseFloat(s string) (float64, error) {
 	return strconv.ParseFloat(s1, 64)
 }
 
-func parseMerchantAndDatetime(md string) (string, error) {
+func parseMerchantAndDatetime(md string) (string, time.Time, error) {
 	tokens := mdRegexp.FindStringSubmatch(md)
 	if len(tokens) != 3 {
-		return "", fmt.Errorf("incorrent merchant and datetime format: %s", md)
+		return "", time.Time{}, fmt.Errorf("incorrent merchant and datetime format: %s", md)
 	}
-	return tokens[1], nil
+	t, err := time.Parse(df, tokens[2])
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return tokens[1], t, nil
 }
 
 func calcRoublePrice(price float64, currency string) (float64, error) {
