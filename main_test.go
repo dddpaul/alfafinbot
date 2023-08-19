@@ -58,7 +58,7 @@ func TestNewAMDPurchase(t *testing.T) {
 	p, err := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
 	assert.Nil(t, err)
 	assert.Equal(t, 1234567.0, p.Price)
-	assert.Equal(t, "YANDEX GO 16.08.2023 07:36", p.Merchant)
+	assert.Equal(t, "YANDEX GO", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
 	assert.Equal(t, 10000.12, p.Balance)
 }

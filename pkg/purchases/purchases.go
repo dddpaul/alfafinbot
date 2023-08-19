@@ -2,6 +2,7 @@ package purchases
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,10 +20,13 @@ const (
 	Cancel
 )
 
-var ut1 *untemplate.Untemplater
-var ut2 *untemplate.Untemplater
-var ut3 *untemplate.Untemplater
-var roubleSymbols = []string{"RUB", "RUR", "₽"}
+var (
+	ut1           *untemplate.Untemplater
+	ut2           *untemplate.Untemplater
+	ut3           *untemplate.Untemplater
+	mdRegexp      = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
+	roubleSymbols = []string{"RUB", "RUR", "₽"}
+)
 
 func init() {
 	var err error
@@ -80,15 +84,17 @@ func New(t time.Time, s string) (*Purchase, error) {
 		return nil, err
 	}
 
+	merchant := m["merchant"]
+	if md, ok := m["merchant_datetime"]; ok {
+		merchant, err = parseMerchantAndDatetime(md)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	priceRUB, err := calcRoublePrice(price, m["currency"])
 	if err != nil {
 		return nil, err
-	}
-
-	// TODO: Add parsing with regexp
-	merchant := m["merchant"]
-	if md, ok := m["merchant_datetime"]; ok {
-		merchant = md
 	}
 
 	return &Purchase{
@@ -107,6 +113,14 @@ func parseFloat(s string) (float64, error) {
 	s1 = strings.ReplaceAll(s1, " ", "")
 	s1 = strings.ReplaceAll(s1, "\u00A0", "")
 	return strconv.ParseFloat(s1, 64)
+}
+
+func parseMerchantAndDatetime(md string) (string, error) {
+	tokens := mdRegexp.FindStringSubmatch(md)
+	if len(tokens) != 3 {
+		return "", fmt.Errorf("incorrent merchant and datetime format: %s", md)
+	}
+	return tokens[1], nil
 }
 
 func calcRoublePrice(price float64, currency string) (float64, error) {
