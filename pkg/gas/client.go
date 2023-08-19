@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptrace"
 	"net/url"
@@ -130,7 +130,7 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 
 // Parse HTTP response from Google App Script
 func parse(resp *http.Response) (*Response, error) {
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
