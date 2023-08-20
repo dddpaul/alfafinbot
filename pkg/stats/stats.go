@@ -2,18 +2,23 @@ package stats
 
 import (
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
+	"sync"
 	"time"
 )
+
+var mu sync.Mutex
 
 type Stats map[time.Time]float64
 
 func (s Stats) Add(p *purchases.Purchase) {
 	dt := truncateDay(p.Time)
+	mu.Lock()
 	if _, ok := s[dt]; ok {
 		s[dt] = s[dt] + p.PriceRUB
 	} else {
 		s[dt] = p.PriceRUB
 	}
+	mu.Unlock()
 }
 
 func (s Stats) Get(dt time.Time) float64 {
