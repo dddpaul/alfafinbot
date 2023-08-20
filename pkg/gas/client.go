@@ -54,6 +54,7 @@ type ErrorCode int64
 
 const (
 	OTHER ErrorCode = iota
+	CLIENT
 	TIMEOUT
 )
 
@@ -63,7 +64,7 @@ type GASError struct {
 }
 
 func (e *GASError) Error() string {
-	return fmt.Sprintf("error message: %s, code: %d", e.message, e.code)
+	return fmt.Sprintf("GAS error message: %s, code: %d", e.message, e.code)
 }
 
 func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
@@ -177,11 +178,7 @@ func parse(resp *http.Response) (*Response, error) {
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		message := after(s, "Error: ")
-		if strings.HasPrefix(message, "Timeout") {
-			return nil, &GASError{message: message, code: TIMEOUT}
-		}
-		return nil, &GASError{message: message, code: OTHER}
+		return nil, &GASError{message: after(s, "Error: "), code: CLIENT}
 	}
 
 	r := &Response{}
@@ -190,7 +187,10 @@ func parse(resp *http.Response) (*Response, error) {
 	}
 
 	if r.isError() {
-		return nil, errors.New("GAS: " + r.Message)
+		if strings.HasPrefix(r.Message, "Timeout") {
+			return nil, &GASError{message: r.Message, code: TIMEOUT}
+		}
+		return nil, &GASError{message: r.Message, code: OTHER}
 	}
 
 	return r, nil
