@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	"github.com/dddpaul/alfafin-bot/pkg/proxy"
@@ -18,6 +19,7 @@ import (
 )
 
 const DF = "2006-01-02 15:04:05 -0700"
+const MAX_RETRIES = 5
 
 type GASConfig struct {
 	Url          string
@@ -94,34 +96,45 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 	params.Add("priceRUB", strconv.FormatFloat(p.PriceRUB, 'f', 2, 64))
 	logger.Log(ctx, nil).WithField("url", c.url.String()).WithField("body", fmt.Sprintf("%+v", params)).Debugf("request")
 
-	req, err := http.NewRequestWithContext(
-		httptrace.WithClientTrace(ctx, c.trace),
-		"POST",
-		c.url.String(),
-		strings.NewReader(params.Encode()))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	r, err := parse(resp)
-	if err != nil {
-		var gasError *GASError
-		if errors.As(err, gasError) {
-			if gasError.code == TIMEOUT {
-				// TODO: retry
-			}
+	retries := 0
+	for retries < MAX_RETRIES {
+		req, err := http.NewRequestWithContext(
+			httptrace.WithClientTrace(ctx, c.trace),
+			"POST",
+			c.url.String(),
+			strings.NewReader(params.Encode()))
+		if err != nil {
+			return "", err
 		}
-		return "", err
-	}
-	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	return r.Message, nil
+		resp, err := c.client.Do(req)
+		if err != nil {
+			logger.Log(ctx, err).Errorf("error")
+			retries++
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		r, err := parse(resp)
+		if err != nil {
+			var gasError *GASError
+			if errors.As(err, gasError) {
+				if gasError.code == TIMEOUT {
+					logger.Log(ctx, err).Errorf("error")
+					retries++
+					time.Sleep(5 * time.Second)
+					continue
+				}
+			}
+			return "", err
+		}
+		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
+
+		return r.Message, nil
+	}
+
+	return "", fmt.Errorf("all %d retries to add purchase was failed", MAX_RETRIES)
 }
 
 func (c *Client) Get(ctx context.Context) (string, error) {
