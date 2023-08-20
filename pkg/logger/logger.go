@@ -11,14 +11,14 @@ import (
 )
 
 const MESSAGE_ID = "message_id"
-const RETRY_NUMBER = "retry_number"
+const RETRY_ATTEMPT = "retry"
 
 func WithMessageID(id int) context.Context {
 	return context.WithValue(context.Background(), MESSAGE_ID, id)
 }
 
-func WithRetryNumber(ctx context.Context, rn int) context.Context {
-	return context.WithValue(ctx, RETRY_NUMBER, rn)
+func WithRetryAttempt(ctx context.Context, r int) context.Context {
+	return context.WithValue(ctx, RETRY_ATTEMPT, r)
 }
 
 func NewTrace(ctx context.Context) *httptrace.ClientTrace {
@@ -39,8 +39,8 @@ func Log(ctx context.Context, err error) *log.Entry {
 	if messageID := ctx.Value(MESSAGE_ID); messageID != nil {
 		entry = entry.WithField(MESSAGE_ID, messageID)
 	}
-	if retryNumber := ctx.Value(RETRY_NUMBER); retryNumber != nil {
-		entry = entry.WithField(RETRY_NUMBER, retryNumber)
+	if retry := ctx.Value(RETRY_ATTEMPT); retry != nil {
+		entry = entry.WithField(RETRY_ATTEMPT, retry)
 	}
 	return entry
 }

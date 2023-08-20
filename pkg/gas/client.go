@@ -98,7 +98,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 
 	retry := 1
 	for retry <= MAX_RETRIES {
-		ctx = logger.WithRetryNumber(ctx, retry)
+		ctx = logger.WithRetryAttempt(ctx, retry)
 		req, err := http.NewRequestWithContext(
 			httptrace.WithClientTrace(ctx, c.trace),
 			"POST",
