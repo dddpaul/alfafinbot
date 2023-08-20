@@ -12,7 +12,7 @@ import (
 
 var df = "02.01.2006 15:04"
 
-func TestNewPurchase(t *testing.T) {
+func TestNewPurchaseWithTemplate1(t *testing.T) {
 	p, err := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	assert.Nil(t, err)
 	assert.Equal(t, 527.11, p.Price)
@@ -56,7 +56,7 @@ func TestNewPurchase(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestNewAMDPurchase(t *testing.T) {
+func TestNewPurchaseWithTemplate2(t *testing.T) {
 	p, err := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
 	assert.Nil(t, err)
 	dt, _ := time.Parse(df, "16.08.2023 07:36")
