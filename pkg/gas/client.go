@@ -62,7 +62,7 @@ type GASError struct {
 	code    ErrorCode
 }
 
-func (e GASError) Error() string {
+func (e *GASError) Error() string {
 	return fmt.Sprintf("error message: %s, code: %d", e.message, e.code)
 }
 
@@ -119,7 +119,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 		r, err := parse(resp)
 		if err != nil {
 			var gasError *GASError
-			if errors.As(err, gasError) {
+			if errors.As(err, &gasError) {
 				if gasError.code == TIMEOUT {
 					logger.Log(ctx, err).Errorf("error")
 					retries++
@@ -169,15 +169,18 @@ func parse(resp *http.Response) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp.Body.Close()
+	err = resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		errorMessage := after(s, "Error: ")
-		if strings.HasPrefix(errorMessage, "Timeout") {
-			return nil, GASError{message: errorMessage, code: TIMEOUT}
+		message := after(s, "Error: ")
+		if strings.HasPrefix(message, "Timeout") {
+			return nil, &GASError{message: message, code: TIMEOUT}
 		}
-		return nil, GASError{message: errorMessage, code: OTHER}
+		return nil, &GASError{message: message, code: OTHER}
 	}
 
 	r := &Response{}
