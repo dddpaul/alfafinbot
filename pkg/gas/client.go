@@ -64,7 +64,19 @@ type GASError struct {
 }
 
 func (e *GASError) Error() string {
-	return fmt.Sprintf("GAS error message: %s, code: %d", e.message, e.code)
+	status := func(code ErrorCode) string {
+		switch code {
+		case OTHER:
+			return "OTHER"
+		case CLIENT:
+			return "CLIENT"
+		case TIMEOUT:
+			return "TIMEOUT"
+		default:
+			return "OTHER"
+		}
+	}(e.code)
+	return fmt.Sprintf("GAS error message: %s, code: %s", e.message, status)
 }
 
 func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
