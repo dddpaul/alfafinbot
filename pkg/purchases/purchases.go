@@ -141,7 +141,7 @@ func calcRoublePrice(price float64, currency string, dt time.Time) (float64, err
 		return roundFloat(price, 2), nil
 	}
 	rates := cbr.GetCurrencyRates()
-	if time.Now().Truncate(time.Hour*24) != dt.Truncate(time.Hour*24) {
+	if truncateDay(time.Now()) != truncateDay(dt) {
 		var err error
 		rates, err = cbr.FetchCurrencyRates(dt)
 		if err != nil {
@@ -157,4 +157,8 @@ func calcRoublePrice(price float64, currency string, dt time.Time) (float64, err
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
+}
+
+func truncateDay(dt time.Time) time.Time {
+	return dt.Truncate(time.Hour * 24)
 }

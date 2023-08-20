@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"math"
 	"testing"
 	"time"
@@ -74,6 +75,15 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 
 	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 25:36")
 	assert.NotNil(t, err, "Invalid datetime value should not be parsed")
+}
+
+func TestStatsForNewPurchases(t *testing.T) {
+	p1, _ := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
+	p2, _ := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
+	s := stats.New()
+	s.Add(p1)
+	s.Add(p2)
+	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, s.Sum())
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {

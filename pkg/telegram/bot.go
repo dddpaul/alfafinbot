@@ -3,7 +3,9 @@ package telegram
 import (
 	"context"
 	"fmt"
+	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"net/http"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -20,6 +22,7 @@ type Bot struct {
 	admin     string
 	gasConfig *gas.GASConfig
 	client    *http.Client
+	stats     stats.Stats
 }
 
 type BotOption func(b *Bot)
@@ -50,7 +53,7 @@ func WithGAS(url string, socks string, id string, secret string) BotOption {
 }
 
 func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
-	b := &Bot{}
+	b := &Bot{stats: stats.New()}
 
 	for _, opt := range opts {
 		opt(b)
@@ -81,6 +84,7 @@ func (b *Bot) Start() {
 	}
 
 	add := func(ctx context.Context, p *purchases.Purchase) {
+		b.stats.Add(p)
 		resp, err := gas.NewClient(ctx, b.gasConfig, "").Add(ctx, p)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
@@ -151,6 +155,14 @@ func (b *Bot) Start() {
 			return
 		}
 		b.bot.Send(m.Sender, resp)
+	})
+
+	b.bot.Handle("/stats", func(m *tb.Message) {
+		ctx := logger.WithMessageID(m.ID)
+		if !check(ctx, "/stats", m) {
+			return
+		}
+		b.bot.Send(m.Sender, strconv.FormatFloat(b.stats.Sum(), 'f', 2, 64))
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {
