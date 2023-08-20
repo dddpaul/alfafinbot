@@ -96,8 +96,9 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 	params.Add("priceRUB", strconv.FormatFloat(p.PriceRUB, 'f', 2, 64))
 	logger.Log(ctx, nil).WithField("url", c.url.String()).WithField("body", fmt.Sprintf("%+v", params)).Debugf("request")
 
-	retries := 0
-	for retries < MAX_RETRIES {
+	retry := 1
+	for retry <= MAX_RETRIES {
+		ctx = logger.WithRetryNumber(ctx, retry)
 		req, err := http.NewRequestWithContext(
 			httptrace.WithClientTrace(ctx, c.trace),
 			"POST",
@@ -111,7 +112,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 		resp, err := c.client.Do(req)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
-			retries++
+			retry++
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -122,7 +123,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 			if errors.As(err, &gasError) {
 				if gasError.code == TIMEOUT {
 					logger.Log(ctx, err).Errorf("error")
-					retries++
+					retry++
 					time.Sleep(5 * time.Second)
 					continue
 				}

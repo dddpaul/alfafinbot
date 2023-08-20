@@ -19,7 +19,7 @@ func NewTransport(socks string) http.RoundTripper {
 
 func newDialer(socks string) proxy.Dialer {
 	if len(socks) == 0 {
-		log.Infof("SOCKS5 proxy URL is empty, use DIRECT connection")
+		log.Debugf("SOCKS5 proxy URL is empty, use DIRECT connection")
 		return directDialer
 	}
 
