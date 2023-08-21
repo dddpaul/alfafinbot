@@ -9,7 +9,6 @@ import (
 
 var (
 	mu sync.Mutex
-	df = "2006-01-02"
 )
 
 type Expenses map[time.Time]float64
@@ -22,7 +21,7 @@ type Stats struct {
 func (e Expenses) MarshalJSON() ([]byte, error) {
 	m := make(map[string]float64)
 	for k, v := range e {
-		m[k.Format(df)] = v
+		m[k.Format(time.DateOnly)] = v
 	}
 	return json.Marshal(m)
 }
