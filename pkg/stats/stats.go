@@ -3,7 +3,6 @@ package stats
 import (
 	"encoding/json"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
-	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -72,7 +71,6 @@ type Stats struct {
 
 func (e Expenses) Stats() (string, error) {
 	s := Stats{Expenses: e, Count: e.Count(), Sum: e.Sum()}
-	log.Debugf("expenses = %+v, or %v", e, e)
 	b, err := json.Marshal(s)
 	if err != nil {
 		return "", err
