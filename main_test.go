@@ -70,9 +70,9 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 	assert.Equal(t, "֏", p.Currency)
 	assert.Equal(t, roundFloat(p.Price*0.251957, 2), p.PriceRUB)
 
-	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO ABC123 16.08.2023 07:36")
+	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 123 16.08.2023 07:36")
 	assert.Nil(t, err)
-	assert.Equal(t, "YANDEX GO ABC123", p.Merchant)
+	assert.Equal(t, "YANDEX GO", p.Merchant, "Digits must be stripped from merchant name for later GAS handling")
 
 	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 25:36")
 	assert.NotNil(t, err, "Invalid datetime value should not be parsed")

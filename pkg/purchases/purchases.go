@@ -27,6 +27,7 @@ var (
 	ut3             *untemplate.Untemplater
 	mdRegexp        = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
 	df              = "02.01.2006 15:04"
+	digitsRegexp    = regexp.MustCompile("\\d+")
 	currencySymbols = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
 	roubleSymbols   = []string{"RUB", "RUR", "₽"}
 )
@@ -95,6 +96,8 @@ func New(dt time.Time, s string) (*Purchase, error) {
 			return nil, err
 		}
 	}
+	merchant = digitsRegexp.ReplaceAllString(merchant, "")
+	merchant = strings.Trim(merchant, " ")
 
 	currencySymbol, ok := currencySymbols[m["currency"]]
 	if !ok {
