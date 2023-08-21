@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -39,7 +40,7 @@ func main() {
 	})
 
 	flag.Parse()
-	log.Printf("Configuration %v", getConfig(flag.CommandLine))
+	log.Printf("Configuration %v, timezone %v", getConfig(flag.CommandLine), time.Local)
 
 	if verbose {
 		log.SetLevel(log.DebugLevel)
