@@ -90,8 +90,8 @@ func TestStatsForSeveralPurchases(t *testing.T) {
 
 	s := stats.Stats{
 		Expenses: stats.Expenses{
-			truncateDay(time.Now()): stats.Expense{Count: 1, Sum: p1.PriceRUB},
-			truncateDay(p2.Time):    stats.Expense{Count: 2, Sum: p2.PriceRUB + p3.PriceRUB},
+			truncateDay(time.Now()).Unix(): stats.Expense{Count: 1, Sum: p1.PriceRUB},
+			truncateDay(p2.Time).Unix():    stats.Expense{Count: 2, Sum: p2.PriceRUB + p3.PriceRUB},
 		},
 		Count: 3,
 		Sum:   p1.PriceRUB + p2.PriceRUB + p3.PriceRUB,
