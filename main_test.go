@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"math"
 	"testing"
@@ -77,13 +79,27 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 	assert.NotNil(t, err, "Invalid datetime value should not be parsed")
 }
 
-func TestStatsForNewPurchases(t *testing.T) {
+func TestStatsForSeveralPurchases(t *testing.T) {
 	p1, _ := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	p2, _ := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
 	s := stats.New()
 	s.Add(p1)
 	s.Add(p2)
 	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, s.Sum())
+
+	js := stats.JsonStats{
+		Stats: stats.Stats{
+			stats.JsonTime(truncateDay(time.Now())): p1.PriceRUB,
+			stats.JsonTime(truncateDay(p2.Time)):    p2.PriceRUB,
+		},
+		Sum: p1.PriceRUB + p2.PriceRUB,
+	}
+	fmt.Printf("%+v\n", js)
+	j, err := json.Marshal(js)
+	assert.Nil(t, err)
+	j1, err := s.Stats()
+	assert.Nil(t, err)
+	assert.Equal(t, string(j), j1)
 }
 
 func newPurchase(s string) (*purchases.Purchase, error) {
@@ -93,4 +109,8 @@ func newPurchase(s string) (*purchases.Purchase, error) {
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
+}
+
+func truncateDay(dt time.Time) time.Time {
+	return dt.Truncate(time.Hour * 24)
 }

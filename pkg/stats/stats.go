@@ -7,9 +7,19 @@ import (
 	"time"
 )
 
-var mu sync.Mutex
+var (
+	mu sync.Mutex
+	df = "2006-01-02"
+)
 
-type Stats map[time.Time]float64
+type JsonTime time.Time
+
+func (t JsonTime) MarshalJSON() ([]byte, error) {
+	stamp := time.Time(t).Format(df)
+	return []byte(stamp), nil
+}
+
+type Stats map[JsonTime]float64
 
 type JsonStats struct {
 	Stats Stats   `json:"stats"`
@@ -17,7 +27,7 @@ type JsonStats struct {
 }
 
 func (s Stats) Add(p *purchases.Purchase) {
-	dt := truncateDay(p.Time)
+	dt := JsonTime(truncateDay(p.Time))
 	mu.Lock()
 	if _, ok := s[dt]; ok {
 		s[dt] = s[dt] + p.PriceRUB
@@ -28,7 +38,7 @@ func (s Stats) Add(p *purchases.Purchase) {
 }
 
 func (s Stats) Get(dt time.Time) float64 {
-	return s[truncateDay(dt)]
+	return s[JsonTime(truncateDay(dt))]
 }
 
 func (s Stats) Sum() float64 {
