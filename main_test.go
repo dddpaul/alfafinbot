@@ -81,21 +81,23 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 func TestStatsForSeveralPurchases(t *testing.T) {
 	p1, _ := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	p2, _ := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
-	s := stats.New()
-	s.Add(p1)
-	s.Add(p2)
-	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, s.Sum())
+	e := stats.NewExpenses()
+	e.Add(p1)
+	e.Add(p2)
+	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, e.Sum())
 
-	js := stats.Stats{
+	s := stats.Stats{
 		Expenses: stats.Expenses{
-			truncateDay(time.Now()): p1.PriceRUB,
-			truncateDay(p2.Time):    p2.PriceRUB,
+			truncateDay(time.Now()): stats.Expense{Count: 1, Sum: p1.PriceRUB},
+			truncateDay(p2.Time):    stats.Expense{Count: 1, Sum: p2.PriceRUB},
 		},
-		Sum: p1.PriceRUB + p2.PriceRUB,
+		Count: 2,
+		Sum:   p1.PriceRUB + p2.PriceRUB,
 	}
-	j, err := json.Marshal(js)
+	assert.Equal(t, s.Count, e.Count())
+	j, err := json.Marshal(s)
 	assert.Nil(t, err)
-	j1, err := s.Stats()
+	j1, err := e.Stats()
 	assert.Nil(t, err)
 	assert.Equal(t, string(j), j1)
 }

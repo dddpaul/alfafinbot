@@ -52,7 +52,7 @@ func WithGAS(url string, socks string, id string, secret string) BotOption {
 }
 
 func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
-	b := &Bot{stats: stats.New()}
+	b := &Bot{stats: stats.NewExpenses()}
 
 	for _, opt := range opts {
 		opt(b)
