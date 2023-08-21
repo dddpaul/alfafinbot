@@ -81,18 +81,20 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 func TestStatsForSeveralPurchases(t *testing.T) {
 	p1, _ := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	p2, _ := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
+	p3, _ := newPurchase("**1111 Pokupka 1 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 14:36")
 	e := stats.NewExpenses()
 	e.Add(p1)
 	e.Add(p2)
-	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, e.Sum())
+	e.Add(p3)
+	assert.Equal(t, p1.PriceRUB+p2.PriceRUB+p3.PriceRUB, e.Sum())
 
 	s := stats.Stats{
 		Expenses: stats.Expenses{
 			truncateDay(time.Now()): stats.Expense{Count: 1, Sum: p1.PriceRUB},
-			truncateDay(p2.Time):    stats.Expense{Count: 1, Sum: p2.PriceRUB},
+			truncateDay(p2.Time):    stats.Expense{Count: 2, Sum: p2.PriceRUB + p3.PriceRUB},
 		},
-		Count: 2,
-		Sum:   p1.PriceRUB + p2.PriceRUB,
+		Count: 3,
+		Sum:   p1.PriceRUB + p2.PriceRUB + p3.PriceRUB,
 	}
 	assert.Equal(t, s.Count, e.Count())
 	j, err := json.Marshal(s)
