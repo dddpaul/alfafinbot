@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"net/http"
-	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -162,7 +161,12 @@ func (b *Bot) Start() {
 		if !check(ctx, "/stats", m) {
 			return
 		}
-		b.bot.Send(m.Sender, strconv.FormatFloat(b.stats.Sum(), 'f', 2, 64))
+		jsonStats, err := b.stats.Stats()
+		if err != nil {
+			logger.Log(ctx, err).Errorf("error")
+			jsonStats = err.Error()
+		}
+		b.bot.Send(m.Sender, jsonStats)
 	})
 
 	b.bot.Handle(tb.OnText, func(m *tb.Message) {

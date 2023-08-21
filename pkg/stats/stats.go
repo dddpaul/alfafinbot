@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"encoding/json"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
 	"sync"
 	"time"
@@ -9,6 +10,11 @@ import (
 var mu sync.Mutex
 
 type Stats map[time.Time]float64
+
+type JsonStats struct {
+	Stats Stats   `json:"stats"`
+	Sum   float64 `json:"sum"`
+}
 
 func (s Stats) Add(p *purchases.Purchase) {
 	dt := truncateDay(p.Time)
@@ -31,6 +37,15 @@ func (s Stats) Sum() float64 {
 		sum = sum + v
 	}
 	return sum
+}
+
+func (s Stats) Stats() (string, error) {
+	j := JsonStats{Stats: s, Sum: s.Sum()}
+	b, err := json.Marshal(j)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func New() Stats {
