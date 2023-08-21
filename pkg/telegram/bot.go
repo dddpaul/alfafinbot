@@ -21,7 +21,7 @@ type Bot struct {
 	admin     string
 	gasConfig *gas.GASConfig
 	client    *http.Client
-	stats     stats.Stats
+	stats     stats.Expenses
 }
 
 type BotOption func(b *Bot)

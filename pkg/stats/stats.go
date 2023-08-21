@@ -12,54 +12,55 @@ var (
 	df = "2006-01-02"
 )
 
-type JsonTime time.Time
+type Expenses map[time.Time]float64
 
-func (t JsonTime) MarshalJSON() ([]byte, error) {
-	stamp := time.Time(t).Format(df)
-	return []byte(stamp), nil
+type Stats struct {
+	Expenses Expenses `json:"expenses"`
+	Sum      float64  `json:"sum"`
 }
 
-type Stats map[JsonTime]float64
-
-type JsonStats struct {
-	Stats Stats   `json:"stats"`
-	Sum   float64 `json:"sum"`
+func (e Expenses) MarshalJSON() ([]byte, error) {
+	m := make(map[string]float64)
+	for k, v := range e {
+		m[k.Format(df)] = v
+	}
+	return json.Marshal(m)
 }
 
-func (s Stats) Add(p *purchases.Purchase) {
-	dt := JsonTime(truncateDay(p.Time))
+func (e Expenses) Add(p *purchases.Purchase) {
+	dt := truncateDay(p.Time)
 	mu.Lock()
-	if _, ok := s[dt]; ok {
-		s[dt] = s[dt] + p.PriceRUB
+	if _, ok := e[dt]; ok {
+		e[dt] = e[dt] + p.PriceRUB
 	} else {
-		s[dt] = p.PriceRUB
+		e[dt] = p.PriceRUB
 	}
 	mu.Unlock()
 }
 
-func (s Stats) Get(dt time.Time) float64 {
-	return s[JsonTime(truncateDay(dt))]
+func (e Expenses) Get(dt time.Time) float64 {
+	return e[truncateDay(dt)]
 }
 
-func (s Stats) Sum() float64 {
+func (e Expenses) Sum() float64 {
 	var sum float64 = 0
-	for _, v := range s {
+	for _, v := range e {
 		sum = sum + v
 	}
 	return sum
 }
 
-func (s Stats) Stats() (string, error) {
-	j := JsonStats{Stats: s, Sum: s.Sum()}
-	b, err := json.Marshal(j)
+func (e Expenses) Stats() (string, error) {
+	s := Stats{Expenses: e, Sum: e.Sum()}
+	b, err := json.Marshal(s)
 	if err != nil {
 		return "", err
 	}
 	return string(b), nil
 }
 
-func New() Stats {
-	return make(Stats)
+func New() Expenses {
+	return make(Expenses)
 }
 
 func truncateDay(dt time.Time) time.Time {

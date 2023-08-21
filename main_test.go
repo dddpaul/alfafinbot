@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"math"
 	"testing"
@@ -87,14 +86,13 @@ func TestStatsForSeveralPurchases(t *testing.T) {
 	s.Add(p2)
 	assert.Equal(t, p1.PriceRUB+p2.PriceRUB, s.Sum())
 
-	js := stats.JsonStats{
-		Stats: stats.Stats{
-			stats.JsonTime(truncateDay(time.Now())): p1.PriceRUB,
-			stats.JsonTime(truncateDay(p2.Time)):    p2.PriceRUB,
+	js := stats.Stats{
+		Expenses: stats.Expenses{
+			truncateDay(time.Now()): p1.PriceRUB,
+			truncateDay(p2.Time):    p2.PriceRUB,
 		},
 		Sum: p1.PriceRUB + p2.PriceRUB,
 	}
-	fmt.Printf("%+v\n", js)
 	j, err := json.Marshal(js)
 	assert.Nil(t, err)
 	j1, err := s.Stats()
