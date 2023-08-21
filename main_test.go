@@ -61,7 +61,7 @@ func TestNewPurchaseWithTemplate1(t *testing.T) {
 func TestNewPurchaseWithTemplate2(t *testing.T) {
 	p, err := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")
 	assert.Nil(t, err)
-	dt, _ := time.Parse(df, "16.08.2023 07:36")
+	dt, _ := time.ParseInLocation(df, "16.08.2023 07:36", time.Local)
 	assert.Equal(t, dt, p.Time)
 	assert.Equal(t, 1234567.0, p.Price)
 	assert.Equal(t, "YANDEX GO", p.Merchant)

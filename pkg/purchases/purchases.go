@@ -132,7 +132,7 @@ func parseMerchantAndDatetime(md string) (string, time.Time, error) {
 	if len(tokens) != 3 {
 		return "", time.Time{}, fmt.Errorf("incorrent merchant and datetime format: %s", md)
 	}
-	dt, err := time.Parse(df, tokens[2])
+	dt, err := time.ParseInLocation(df, tokens[2], time.Local)
 	if err != nil {
 		return "", time.Time{}, err
 	}
