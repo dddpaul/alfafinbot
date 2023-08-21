@@ -5,7 +5,7 @@ RUN make build-alpine
 
 FROM alpine:3.16.3
 LABEL maintainer="Pavel Derendyaev <dddpaul@gmail.com>"
-RUN apk add --update ca-certificates && \
+RUN apk add --update ca-certificates tzdata && \
     rm -rf /var/cache/apk/* /tmp/* && \
     update-ca-certificates
 WORKDIR /app
