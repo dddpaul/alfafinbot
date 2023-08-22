@@ -129,13 +129,13 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 			continue
 		}
 
-		r, err := parse(resp)
+		r, err := parse(ctx, resp)
 		if err != nil {
 			var gasError *GASError
 			if errors.As(err, &gasError) {
 				if gasError.code == TIMEOUT {
-					logger.Log(ctx, err).Errorf("error")
 					retry++
+					logger.Log(ctx, err).Errorf("waiting for %d seconds till next retry attempt %d", 5, retry)
 					time.Sleep(5 * time.Second)
 					continue
 				}
@@ -167,7 +167,7 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	r, err := parse(resp)
+	r, err := parse(ctx, resp)
 	if err != nil {
 		return "", err
 	}
@@ -177,7 +177,7 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 }
 
 // Parse HTTP response from Google App Script
-func parse(resp *http.Response) (*Response, error) {
+func parse(ctx context.Context, resp *http.Response) (*Response, error) {
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -189,7 +189,9 @@ func parse(resp *http.Response) (*Response, error) {
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		return nil, &GASError{message: after(s, "Error: "), code: CLIENT}
+		err = &GASError{message: after(s, "Error: "), code: CLIENT}
+		logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
+		return nil, err
 	}
 
 	r := &Response{}
@@ -199,9 +201,13 @@ func parse(resp *http.Response) (*Response, error) {
 
 	if r.isError() {
 		if strings.HasPrefix(r.Message, "Timeout") {
-			return nil, &GASError{message: r.Message, code: TIMEOUT}
+			err = &GASError{message: r.Message, code: TIMEOUT}
+			logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
+			return nil, err
 		}
-		return nil, &GASError{message: r.Message, code: OTHER}
+		err = &GASError{message: r.Message, code: OTHER}
+		logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
+		return nil, err
 	}
 
 	return r, nil
