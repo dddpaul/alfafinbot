@@ -38,6 +38,7 @@ type Status int64
 const (
 	OK Status = iota
 	ERROR
+	TEMPORAL_ERROR
 )
 
 type Response struct {
@@ -47,6 +48,10 @@ type Response struct {
 
 func (r *Response) isError() bool {
 	return r.Status != OK
+}
+
+func (r *Response) isTemporalError() bool {
+	return r.Status == TEMPORAL_ERROR
 }
 
 type ErrorCode int64
@@ -200,7 +205,7 @@ func parse(ctx context.Context, resp *http.Response) (*Response, error) {
 	}
 
 	if r.isError() {
-		if strings.HasPrefix(r.Message, "Timeout") {
+		if r.isTemporalError() {
 			err = &GASError{message: r.Message, code: TIMEOUT}
 			logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
 			return nil, err
