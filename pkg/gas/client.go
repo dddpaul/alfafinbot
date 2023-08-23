@@ -3,7 +3,6 @@ package gas
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,35 +51,6 @@ func (r *Response) isError() bool {
 
 func (r *Response) isTemporalError() bool {
 	return r.Status == TEMPORAL_ERROR
-}
-
-type ErrorCode int64
-
-const (
-	OTHER ErrorCode = iota
-	CLIENT
-	TIMEOUT
-)
-
-type GASError struct {
-	message string
-	code    ErrorCode
-}
-
-func (e *GASError) Error() string {
-	status := func(code ErrorCode) string {
-		switch code {
-		case OTHER:
-			return "OTHER"
-		case CLIENT:
-			return "CLIENT"
-		case TIMEOUT:
-			return "TIMEOUT"
-		default:
-			return "OTHER"
-		}
-	}(e.code)
-	return fmt.Sprintf("GAS error message: %s, code: %s", e.message, status)
 }
 
 func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
@@ -134,21 +104,20 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 			continue
 		}
 
-		r, err := parse(ctx, resp)
-		if err != nil {
-			var gasError *GASError
-			if errors.As(err, &gasError) {
-				if gasError.code == TIMEOUT {
-					retry++
-					logger.Log(ctx, err).Errorf("waiting for %d seconds till next retry attempt %d", 5, retry)
-					time.Sleep(5 * time.Second)
-					continue
-				}
+		r := parse(ctx, resp)
+		if r.isError() {
+			if r.isTemporalError() {
+				retry++
+				logger.Log(ctx, err).Errorf("Received '%s' temporal error with code=%d,"+
+					"waiting for %d seconds till next retry attempt %d", r.Message, r.Status, 5, retry)
+				time.Sleep(5 * time.Second)
+				continue
 			}
+			logger.Log(ctx, err).Errorf("Received '%s' error with code=%d", r.Message, r.Status)
 			return "", err
 		}
-		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 
+		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 		return r.Message, nil
 	}
 
@@ -172,50 +141,38 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	r, err := parse(ctx, resp)
-	if err != nil {
-		return "", err
-	}
+	r := parse(ctx, resp)
 	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 
 	return r.Message, nil
 }
 
 // Parse HTTP response from Google App Script
-func parse(ctx context.Context, resp *http.Response) (*Response, error) {
+func parse(ctx context.Context, resp *http.Response) *Response {
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		logger.Log(ctx, err).Errorf(err.Error())
+		return &Response{Status: ERROR, Message: err.Error()}
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return nil, err
+		logger.Log(ctx, err).Errorf(err.Error())
+		return &Response{Status: ERROR, Message: err.Error()}
 	}
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		err = &GASError{message: after(s, "Error: "), code: CLIENT}
 		logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
-		return nil, err
+		return &Response{Status: ERROR, Message: after(s, "Error: ")}
 	}
 
 	r := &Response{}
 	if err = json.Unmarshal(data, r); err != nil {
-		return nil, err
+		logger.Log(ctx, err).WithField("response_body", s).Errorf(err.Error())
+		return &Response{Status: ERROR, Message: err.Error()}
 	}
 
-	if r.isError() {
-		if r.isTemporalError() {
-			err = &GASError{message: r.Message, code: TIMEOUT}
-			logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
-			return nil, err
-		}
-		err = &GASError{message: r.Message, code: OTHER}
-		logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
-		return nil, err
-	}
-
-	return r, nil
+	return r
 }
 
 // Get substring after a string
