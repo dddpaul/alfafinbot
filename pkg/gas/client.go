@@ -105,19 +105,19 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 		}
 
 		r := parse(ctx, resp)
+		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
+
 		if r.isError() {
+			err = fmt.Errorf("error code: %d, message: %s", r.Status, r.Message)
 			if r.isTemporalError() {
 				retry++
-				logger.Log(ctx, err).Errorf("Received '%s' temporal error with code=%d,"+
-					"waiting for %d seconds till next retry attempt %d", r.Message, r.Status, 5, retry)
+				logger.Log(ctx, err).Errorf("Waiting for %d seconds till next retry attempt %d", 5, retry)
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			logger.Log(ctx, err).Errorf("Received '%s' error with code=%d", r.Message, r.Status)
 			return "", err
 		}
 
-		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 		return r.Message, nil
 	}
 
@@ -142,8 +142,6 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 	}
 
 	r := parse(ctx, resp)
-	logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
-
 	return r.Message, nil
 }
 
@@ -151,24 +149,22 @@ func (c *Client) Get(ctx context.Context) (string, error) {
 func parse(ctx context.Context, resp *http.Response) *Response {
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Log(ctx, err).Errorf(err.Error())
 		return &Response{Status: ERROR, Message: err.Error()}
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		logger.Log(ctx, err).Errorf(err.Error())
 		return &Response{Status: ERROR, Message: err.Error()}
 	}
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		logger.Log(ctx, err).WithField("response_body", s).Errorf("error")
+		logger.Log(ctx, err).WithField("body", s).Errorf("error")
 		return &Response{Status: ERROR, Message: after(s, "Error: ")}
 	}
 
 	r := &Response{}
 	if err = json.Unmarshal(data, r); err != nil {
-		logger.Log(ctx, err).WithField("response_body", s).Errorf(err.Error())
+		logger.Log(ctx, err).WithField("body", s).Errorf("error")
 		return &Response{Status: ERROR, Message: err.Error()}
 	}
 
