@@ -108,7 +108,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 		logger.Log(ctx, nil).WithField("body", fmt.Sprintf("%+v", r)).Debugf("response")
 
 		if r.isError() {
-			err = fmt.Errorf("error code: %d, message: %s", r.Status, r.Message)
+			err = fmt.Errorf("code %d", r.Status)
 			if r.isTemporalError() {
 				retry++
 				logger.Log(ctx, err).Errorf("Waiting for %d seconds till next retry attempt %d", 5, retry)
