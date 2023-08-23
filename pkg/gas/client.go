@@ -158,7 +158,7 @@ func parse(ctx context.Context, resp *http.Response) *Response {
 
 	s := string(data)
 	if strings.Contains(s, ".errorMessage") {
-		logger.Log(ctx, err).WithField("body", s).Errorf("error")
+		logger.Log(ctx, err).WithField("body", s).Errorf("Google apps HTML error")
 		return &Response{Status: ERROR, Message: after(s, "Error: ")}
 	}
 
