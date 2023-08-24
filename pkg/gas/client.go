@@ -53,7 +53,7 @@ func (r *Response) isTemporalError() bool {
 	return r.Status == TEMPORAL_ERROR
 }
 
-func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
+func NewClient(gas *GASConfig, command string) *Client {
 	u, err := url.Parse(gas.Url)
 	if err != nil {
 		panic(err)
@@ -66,7 +66,7 @@ func NewClient(ctx context.Context, gas *GASConfig, command string) *Client {
 
 	return &Client{
 		url:   u,
-		trace: logger.NewTrace(ctx),
+		trace: nil,
 		client: &http.Client{
 			Transport:     proxy.NewTransport(gas.Socks),
 			CheckRedirect: logger.LogRedirect,
@@ -87,7 +87,7 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 	for retry <= MAX_RETRIES {
 		ctx = logger.WithRetryAttempt(ctx, retry)
 		req, err := http.NewRequestWithContext(
-			httptrace.WithClientTrace(ctx, c.trace),
+			httptrace.WithClientTrace(ctx, logger.NewTrace(ctx)),
 			"POST",
 			c.url.String(),
 			strings.NewReader(params.Encode()))

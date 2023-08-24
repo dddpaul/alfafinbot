@@ -17,18 +17,19 @@ import (
 )
 
 type Bot struct {
-	bot       *tb.Bot
-	admin     string
-	gasConfig *gas.GASConfig
-	client    *http.Client
-	stats     stats.Expenses
+	bot        *tb.Bot
+	admin      string
+	gasConfig  *gas.GASConfig
+	gasClient  *gas.Client
+	httpClient *http.Client
+	stats      stats.Expenses
 }
 
 type BotOption func(b *Bot)
 
 func WithSocks(socks string) BotOption {
 	return func(b *Bot) {
-		b.client = &http.Client{
+		b.httpClient = &http.Client{
 			Transport: proxy.NewTransport(socks),
 		}
 	}
@@ -48,11 +49,14 @@ func WithGAS(url string, socks string, id string, secret string) BotOption {
 			ClientID:     id,
 			ClientSecret: secret,
 		}
+		b.gasClient = gas.NewClient(b.gasConfig, "")
 	}
 }
 
 func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
-	b := &Bot{stats: stats.NewExpenses()}
+	b := &Bot{
+		stats: stats.NewExpenses(),
+	}
 
 	for _, opt := range opts {
 		opt(b)
@@ -61,7 +65,7 @@ func NewBot(telegramToken string, opts ...BotOption) (*Bot, error) {
 	bot, err := tb.NewBot(tb.Settings{
 		Token:  telegramToken,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
-		Client: b.client,
+		Client: b.httpClient,
 	})
 	if err != nil {
 		return nil, err
@@ -84,7 +88,7 @@ func (b *Bot) Start() {
 
 	add := func(ctx context.Context, p *purchases.Purchase) {
 		b.stats.Add(p)
-		resp, err := gas.NewClient(ctx, b.gasConfig, "").Add(ctx, p)
+		resp, err := b.gasClient.Add(ctx, p)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			return
@@ -105,7 +109,7 @@ func (b *Bot) Start() {
 		if !check(ctx, "/today", m) {
 			return
 		}
-		resp, err := gas.NewClient(ctx, b.gasConfig, "today").Get(ctx)
+		resp, err := gas.NewClient(b.gasConfig, "today").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -119,7 +123,7 @@ func (b *Bot) Start() {
 		if !check(ctx, "/week", m) {
 			return
 		}
-		resp, err := gas.NewClient(ctx, b.gasConfig, "week").Get(ctx)
+		resp, err := gas.NewClient(b.gasConfig, "week").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -133,7 +137,7 @@ func (b *Bot) Start() {
 		if !check(ctx, "/month", m) {
 			return
 		}
-		resp, err := gas.NewClient(ctx, b.gasConfig, "month").Get(ctx)
+		resp, err := gas.NewClient(b.gasConfig, "month").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
@@ -147,7 +151,7 @@ func (b *Bot) Start() {
 		if !check(ctx, "/year", m) {
 			return
 		}
-		resp, err := gas.NewClient(ctx, b.gasConfig, "year").Get(ctx)
+		resp, err := gas.NewClient(b.gasConfig, "year").Get(ctx)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
 			b.bot.Send(m.Sender, fmt.Sprintf("ERROR: %v", err))
