@@ -19,13 +19,6 @@ import (
 
 const MAX_RETRIES = 5
 
-type GASConfig struct {
-	Url          string
-	Socks        string
-	ClientID     string
-	ClientSecret string
-}
-
 type Client struct {
 	url    *url.URL
 	trace  *httptrace.ClientTrace
@@ -53,21 +46,21 @@ func (r *Response) isTemporalError() bool {
 	return r.Status == TEMPORAL_ERROR
 }
 
-func NewClient(gas *GASConfig) *Client {
-	u, err := url.Parse(gas.Url)
+func NewClient(u string, socks string, id string, secret string) *Client {
+	u1, err := url.Parse(u)
 	if err != nil {
 		panic(err)
 	}
 	params := url.Values{}
-	params.Add("client_id", gas.ClientID)
-	params.Add("client_secret", gas.ClientSecret)
-	u.RawQuery = params.Encode()
+	params.Add("client_id", id)
+	params.Add("client_secret", secret)
+	u1.RawQuery = params.Encode()
 
 	return &Client{
-		url:   u,
+		url:   u1,
 		trace: nil,
 		client: &http.Client{
-			Transport:     proxy.NewTransport(gas.Socks),
+			Transport:     proxy.NewTransport(socks),
 			CheckRedirect: logger.LogRedirect,
 		},
 	}

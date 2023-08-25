@@ -42,13 +42,7 @@ func WithAdmin(a string) BotOption {
 
 func WithGAS(url string, socks string, id string, secret string) BotOption {
 	return func(b *Bot) {
-		config := &gas.GASConfig{
-			Url:          url,
-			Socks:        socks,
-			ClientID:     id,
-			ClientSecret: secret,
-		}
-		b.gasClient = gas.NewClient(config)
+		b.gasClient = gas.NewClient(url, socks, id, secret)
 	}
 }
 
