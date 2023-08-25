@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"github.com/dddpaul/alfafin-bot/pkg/logger"
 	"github.com/dddpaul/alfafin-bot/pkg/proxy"
 	"github.com/dddpaul/alfafin-bot/pkg/purchases"
@@ -23,6 +25,7 @@ type Client struct {
 	url    *url.URL
 	trace  *httptrace.ClientTrace
 	client *http.Client
+	rl     *rate.Limiter
 }
 
 type Status int64
@@ -46,6 +49,11 @@ func (r *Response) isTemporalError() bool {
 	return r.Status == TEMPORAL_ERROR
 }
 
+// NewClient returns reusable Google Apps Script client
+// RateLimiter is configured according to https://developers.google.com/apps-script/guides/services/quotas
+// Simultaneous executions = 30 / user
+// Longest Add operation on server side = 25 seconds (from observing)
+// So our rate limit is 30/25 ~ 1 rps
 func NewClient(u string, socks string, id string, secret string) *Client {
 	u1, err := url.Parse(u)
 	if err != nil {
@@ -63,6 +71,7 @@ func NewClient(u string, socks string, id string, secret string) *Client {
 			Transport:     proxy.NewTransport(socks),
 			CheckRedirect: logger.LogRedirect,
 		},
+		rl: rate.NewLimiter(rate.Every(1*time.Second), 1),
 	}
 }
 
@@ -88,6 +97,10 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 		}
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+		err = c.rl.Wait(ctx)
+		if err != nil {
+			return "", err
+		}
 		resp, err := c.client.Do(req)
 		if err != nil {
 			logger.Log(ctx, err).Errorf("error")
