@@ -53,7 +53,7 @@ func (r *Response) isTemporalError() bool {
 	return r.Status == TEMPORAL_ERROR
 }
 
-func NewClient(gas *GASConfig, command string) *Client {
+func NewClient(gas *GASConfig) *Client {
 	u, err := url.Parse(gas.Url)
 	if err != nil {
 		panic(err)
@@ -61,7 +61,6 @@ func NewClient(gas *GASConfig, command string) *Client {
 	params := url.Values{}
 	params.Add("client_id", gas.ClientID)
 	params.Add("client_secret", gas.ClientSecret)
-	params.Add("command", command)
 	u.RawQuery = params.Encode()
 
 	return &Client{
@@ -124,13 +123,16 @@ func (c *Client) Add(ctx context.Context, p *purchases.Purchase) (string, error)
 	return "", fmt.Errorf("all %d retries to add purchase was failed", MAX_RETRIES)
 }
 
-func (c *Client) Get(ctx context.Context) (string, error) {
-	logger.Log(ctx, nil).WithField("url", c.url.String()).Debugf("request")
+func (c *Client) Get(ctx context.Context, command string) (string, error) {
+	params := url.Values{}
+	params.Add("command", command)
+	u := c.url.String() + "&" + params.Encode()
+	logger.Log(ctx, nil).WithField("url", u).Debugf("request")
 
 	req, err := http.NewRequestWithContext(
-		httptrace.WithClientTrace(ctx, c.trace),
+		httptrace.WithClientTrace(ctx, logger.NewTrace(ctx)),
 		"GET",
-		c.url.String(),
+		u,
 		nil)
 	if err != nil {
 		return "", err

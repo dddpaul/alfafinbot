@@ -7,3 +7,4 @@
 .Makefile
 alfafin-bot
 docker-compose.yml
+bot.sh
