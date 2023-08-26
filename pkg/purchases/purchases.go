@@ -60,7 +60,6 @@ type Purchase struct {
 	Price    float64
 	Merchant string
 	Card     string
-	Balance  float64
 	Currency string
 	PriceRUB float64
 }
@@ -93,11 +92,6 @@ func New(dt time.Time, s string) (*Purchase, error) {
 		price = -price
 	}
 
-	balance, err := parseFloat(m["balance"])
-	if err != nil {
-		return nil, err
-	}
-
 	merchant := m["merchant"]
 	if md, ok := m["merchant_datetime"]; ok {
 		merchant, dt, err = parseMerchantAndDatetime(md)
@@ -123,7 +117,6 @@ func New(dt time.Time, s string) (*Purchase, error) {
 		Price:    price,
 		Merchant: merchant,
 		Card:     m["card"],
-		Balance:  balance,
 		Currency: currencySymbol,
 		PriceRUB: priceRUB,
 	}, nil

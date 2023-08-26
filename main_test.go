@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/dddpaul/alfafin-bot/pkg/stats"
 	"math"
 	"testing"
 	"time"
+
+	"github.com/dddpaul/alfafin-bot/pkg/stats"
 
 	"github.com/stretchr/testify/assert"
 
@@ -20,23 +21,19 @@ func TestNewPurchaseWithTemplate1(t *testing.T) {
 	assert.Equal(t, 527.11, p.Price)
 	assert.Equal(t, "Озон", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
-	assert.Equal(t, 4506.85, p.Balance)
 	assert.Equal(t, "₽", p.Currency)
 
 	p, err = newPurchase("Покупка 527.11 ₽, Озон.\nКарта **1111. Баланс: 4506.85 ₽")
 	assert.Nil(t, err)
 	assert.Equal(t, 527.11, p.Price, "Dot should be accepted as decimal separator")
-	assert.Equal(t, 4506.85, p.Balance, "Dot should be accepted as decimal separator")
 
 	p, err = newPurchase("Покупка 527 ₽, Озон.\nКарта **1111. Баланс: 4506 ₽")
 	assert.Nil(t, err)
 	assert.Equal(t, float64(527), p.Price, "Integer should be parsed to float correctly")
-	assert.Equal(t, float64(4506), p.Balance, "Integer should be parsed to float correctly")
 
 	p, err = newPurchase("Покупка 5 271.17 ₽, Озон.\nКарта **1111. Баланс: 4 506.22 ₽")
 	assert.Nil(t, err)
 	assert.Equal(t, 5271.17, p.Price, "Space should be accepted as thousand separator")
-	assert.Equal(t, 4506.22, p.Balance, "Non-breaking space (U+00A0) should be accepted as thousand separator")
 
 	p, err = newPurchase("Отмена операции 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	assert.Nil(t, err)
@@ -66,7 +63,6 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 	assert.Equal(t, 1234567.0, p.Price)
 	assert.Equal(t, "YANDEX GO", p.Merchant)
 	assert.Equal(t, "**1111", p.Card)
-	assert.Equal(t, 10000.12, p.Balance)
 	assert.Equal(t, "֏", p.Currency)
 	assert.Equal(t, roundFloat(p.Price*0.251957, 2), p.PriceRUB)
 
