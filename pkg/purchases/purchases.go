@@ -22,27 +22,33 @@ const (
 )
 
 var (
-	ut1             *untemplate.Untemplater
-	ut2             *untemplate.Untemplater
-	ut3             *untemplate.Untemplater
-	mdRegexp        = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
-	df              = "02.01.2006 15:04"
-	digitsRegexp    = regexp.MustCompile("\\d+")
-	currencySymbols = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
-	roubleSymbols   = []string{"RUB", "RUR", "₽"}
+	ut1, ut2, ut3, ut4 *untemplate.Untemplater
+	mdRegexp           = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
+	df                 = "02.01.2006 15:04"
+	digitsRegexp       = regexp.MustCompile(`\d+`)
+	currencySymbols    = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
+	roubleSymbols      = []string{"RUB", "RUR", "₽"}
 )
 
 func init() {
 	var err error
+	// Alfabank template before 2023-08
 	ut1, err = untemplate.Create("Покупка {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
+	// Alfabank template after 2023-08
 	ut2, err = untemplate.Create("{card} Pokupka {price} {currency} Balans {balance} RUR {merchant_datetime}")
 	if err != nil {
 		panic(err)
 	}
-	ut3, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
+	// Custom templtae for adding purchases manually
+	ut3, err = untemplate.Create("buy {date} {price} {currency} {merchant}")
+	if err != nil {
+		panic(err)
+	}
+	// Alfabank cancel template
+	ut4, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
 	if err != nil {
 		panic(err)
 	}
@@ -67,10 +73,13 @@ func New(dt time.Time, s string) (*Purchase, error) {
 	if err != nil {
 		m, err = ut2.Extract(s1)
 		if err != nil {
-			op = Cancel
 			m, err = ut3.Extract(s1)
 			if err != nil {
-				return nil, err
+				op = Cancel
+				m, err = ut4.Extract(s1)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
