@@ -25,6 +25,7 @@ var (
 	ut1, ut2, ut3, ut4 *untemplate.Untemplater
 	mdRegexp           = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
 	df                 = "02.01.2006 15:04"
+	ddmmyyyy           = "02.01.2006"
 	digitsRegexp       = regexp.MustCompile(`\d+`)
 	currencySymbols    = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
 	roubleSymbols      = []string{"RUB", "RUR", "₽"}
@@ -43,7 +44,7 @@ func init() {
 		panic(err)
 	}
 	// Custom templtae for adding purchases manually
-	ut3, err = untemplate.Create("buy {date} {price} {currency} {merchant}")
+	ut3, err = untemplate.Create("{date} {price} {currency} - {merchant}")
 	if err != nil {
 		panic(err)
 	}
@@ -90,6 +91,13 @@ func New(dt time.Time, s string) (*Purchase, error) {
 	price = roundFloat(price, 2)
 	if op == Cancel {
 		price = -price
+	}
+
+	if date, ok := m["date"]; ok {
+		dt, err = time.ParseInLocation(ddmmyyyy, date, time.Local)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	merchant := m["merchant"]
