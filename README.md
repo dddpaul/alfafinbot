@@ -18,6 +18,12 @@ docker pull dddpaul/alfafinbot
 Usage:
 
 ```
+  -gas-client-id string
+    	This app client id for GAS web application
+  -gas-client-secret string
+    	This app client secret for GAS web application
+  -gas-proxy-url string
+    	SOCKS5 proxy url for GAS web app
   -gas-url string
     	Google App Script URL
   -telegram-admin string
@@ -26,6 +32,8 @@ Usage:
     	Telegram SOCKS5 proxy url
   -telegram-token string
     	Telegram API token
+  -trace
+    	Enable network tracing
   -verbose
     	Enable bot debug
 ```
