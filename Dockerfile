@@ -1,4 +1,4 @@
-FROM golang:1.21.0 as builder
+FROM golang:1.21.5 as builder
 WORKDIR /go/src/github.com/dddpaul/alfafin-bot
 ADD . ./
 RUN make build-alpine
