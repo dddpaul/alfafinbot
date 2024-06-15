@@ -27,7 +27,7 @@ var (
 	df                 = "02.01.2006 15:04"
 	ddmmyyyy           = "02.01.2006"
 	digitsRegexp       = regexp.MustCompile(`\d+`)
-	currencySymbols    = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏"}
+	currencySymbols    = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏", "BYN": "Br"}
 	roubleSymbols      = []string{"RUB", "RUR", "₽"}
 )
 
@@ -43,7 +43,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	// Custom templtae for adding purchases manually
+	// Custom template for adding purchases manually
 	ut3, err = untemplate.Create("{date} {price} {currency} - {merchant}")
 	if err != nil {
 		panic(err)

@@ -69,6 +69,15 @@ func TestNewPurchaseWithTemplate2(t *testing.T) {
 	assert.Equal(t, "֏", p.Currency)
 	assert.Equal(t, roundFloat(p.Price*0.251957, 2), p.PriceRUB)
 
+	p, err = newPurchase("**1111 Pokupka 17,90 BYN Balans 59 883,37 RUR RESTORAN \"ABC\" 14.06.2024 23:10")
+	assert.Nil(t, err)
+	dt, _ = time.ParseInLocation(df, "14.06.2024 23:10", time.Local)
+	assert.Equal(t, dt, p.Time)
+	assert.Equal(t, 17.90, p.Price)
+	assert.Equal(t, "RESTORAN \"ABC\"", p.Merchant)
+	assert.Equal(t, "Br", p.Currency)
+	assert.Equal(t, roundFloat(p.Price*27.59, 2), p.PriceRUB)
+
 	p, err = newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 123 16.08.2023 07:36")
 	assert.Nil(t, err)
 	assert.Equal(t, "YANDEX GO", p.Merchant, "Digits must be stripped from merchant name for later GAS handling")
