@@ -97,6 +97,15 @@ func TestNewPurchaseWithTemplate3(t *testing.T) {
 	assert.Equal(t, roundFloat(p.Price*0.251957, 2), p.PriceRUB)
 }
 
+func TestNewPurchaseWithTemplate4(t *testing.T) {
+	p, err := newPurchase("Покупка *1111: 62,50 RUR в bartello_BS Баланс: 17 403,67 RUR")
+	assert.Nil(t, err)
+	assert.Equal(t, 62.50, p.Price)
+	assert.Equal(t, "bartello_BS", p.Merchant)
+	assert.Equal(t, "₽", p.Currency)
+	assert.Equal(t, p.Price, p.PriceRUB)
+}
+
 func TestStatsForSeveralPurchases(t *testing.T) {
 	p1, _ := newPurchase("Покупка 527,11 ₽, Озон.\nКарта **1111. Баланс: 4506,85 ₽")
 	p2, _ := newPurchase("**1111 Pokupka 1 234 567 AMD Balans 10 000,12 RUR YANDEX GO 16.08.2023 07:36")

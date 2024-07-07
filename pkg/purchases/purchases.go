@@ -22,37 +22,32 @@ const (
 )
 
 var (
-	ut1, ut2, ut3, ut4 *untemplate.Untemplater
-	mdRegexp           = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})$`)
-	df                 = "02.01.2006 15:04"
-	ddmmyyyy           = "02.01.2006"
-	digitsRegexp       = regexp.MustCompile(`\d+`)
-	currencySymbols    = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏", "BYN": "Br"}
-	roubleSymbols      = []string{"RUB", "RUR", "₽"}
+	templates       []*untemplate.Untemplater
+	mdRegexp        = regexp.MustCompile(`^(.+) (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})`)
+	df              = "02.01.2006 15:04"
+	ddmmyyyy        = "02.01.2006"
+	digitsRegexp    = regexp.MustCompile(`\d+`)
+	currencySymbols = map[string]string{"RUB": "₽", "RUR": "₽", "₽": "₽", "USD": "$", "EUR": "€", "AMD": "֏", "BYN": "Br"}
+	roubleSymbols   = []string{"RUB", "RUR", "₽"}
 )
 
 func init() {
-	var err error
-	// Alfabank template before 2023-08
-	ut1, err = untemplate.Create("Покупка {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
-	if err != nil {
-		panic(err)
+	templateStrings := []string{
+		"Покупка {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽",         // Alfabank template before 2023-08
+		"{card} Pokupka {price} {currency} Balans {balance} RUR {merchant_datetime}",        // Alfabank template after 2023-08
+		"Покупка {card}: {price} {currency} в {merchant} Баланс: {balance}",                 // Alfabank template after 2024-07
+		"{date} {price} {currency} - {merchant}",                                            // Custom template for adding purchases manually
+		"Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽", // Alfabank cancel template
 	}
-	// Alfabank template after 2023-08
-	ut2, err = untemplate.Create("{card} Pokupka {price} {currency} Balans {balance} RUR {merchant_datetime}")
-	if err != nil {
-		panic(err)
+
+	for _, tmplStr := range templateStrings {
+		tmpl, err := untemplate.Create(tmplStr)
+		if err != nil {
+			panic(err)
+		}
+		templates = append(templates, tmpl)
 	}
-	// Custom template for adding purchases manually
-	ut3, err = untemplate.Create("{date} {price} {currency} - {merchant}")
-	if err != nil {
-		panic(err)
-	}
-	// Alfabank cancel template
-	ut4, err = untemplate.Create("Отмена операции {price} {currency}, {merchant}. Карта {card}. Баланс: {balance} ₽")
-	if err != nil {
-		panic(err)
-	}
+
 	cbr.UpdateCurrencyRates()
 }
 
@@ -69,19 +64,21 @@ func New(dt time.Time, s string) (*Purchase, error) {
 	s1 := strings.ReplaceAll(s, "\n", " ")
 	op := Buy
 
-	m, err := ut1.Extract(s1)
-	if err != nil {
-		m, err = ut2.Extract(s1)
-		if err != nil {
-			m, err = ut3.Extract(s1)
-			if err != nil {
+	var m map[string]string
+	var err error
+
+	for i, tmpl := range templates {
+		m, err = tmpl.Extract(s1)
+		if err == nil {
+			if i == len(templates)-1 { // Last template is cancel
 				op = Cancel
-				m, err = ut4.Extract(s1)
-				if err != nil {
-					return nil, err
-				}
 			}
+			break
 		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	price, err := parseFloat(m["price"])
@@ -140,7 +137,7 @@ func parseFloat(s string) (float64, error) {
 func parseMerchantAndDatetime(md string) (string, time.Time, error) {
 	tokens := mdRegexp.FindStringSubmatch(md)
 	if len(tokens) != 3 {
-		return "", time.Time{}, fmt.Errorf("incorrent merchant and datetime format: %s", md)
+		return "", time.Time{}, fmt.Errorf("incorrect merchant and datetime format: %s", md)
 	}
 	dt, err := time.ParseInLocation(df, tokens[2], time.Local)
 	if err != nil {
